@@ -87,6 +87,9 @@
 
 \begin{document}
 
+\tableofcontents 
+\clearpage
+
 \begin{frontmatter}
 
 %% Title, authors and addresses
@@ -437,7 +440,7 @@ interactions based on variable importance measurements cannot distinguish whethe
 interaction or simply two variables with strong marginal effects. Additionally, if the interacting variables have small
 marginal effects, they will not appear near the top of the variable importance list. This means that detecting
 interactions based on variable importance can be problematic. It is also heavily dependent on extensive permutation
-tests.  \citeauthor{schmalohrDetectionEpistaticInteractions2018} notes that there is a lack of accurate methods for the
+tests.  \cite{schmalohrDetectionEpistaticInteractions2018} notes that there is a lack of accurate methods for the
 detection of interactions between genomic loci that affect QTLs but that several studies have shown that RF outperforms
 other QTL mapping methods at identifying QTL and discrete trait associations. They provided benchmarks on simulated and
 real yeast cross data indicating that the RF-based methods outperform other commonly used approaches for detecting
@@ -459,23 +462,24 @@ This new method and the validation results obtained using simulated data are pre
 addition, the results from the use of the method using two real datasets are discussed.
 
 
+\section{Methods}
+
+The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forests model is created using all
+available genomic data. For both the simulated and real data examples, the R package ranger
+\cite[]{Wright.and.Ziegler.2017} was used with the parameters \texttt{num.tree} = 1000 and \texttt{mtry} = \#SNPs/3.
+%Once the Random Forests model is built, the number of times each pair of markers was found as parent-child nodes in all
+%the decision trees were recorded,
+Working from the random forest output, we can form a $p \times p$ matrix of values such that the $\{i,j\}^{th}$ entry is the count of the
+number of times variable $v_i$ is followed by variable $v_j$.  If we sum the upper and lower triangular matrices and set the diagonal to 0,
+we form the interaction vector, of length $\frac {p(p-1)} 2 = {p \choose 2}$.  This is likely to be large and contain a large number of
+zeros ($4 \times 10^9$ entries and 0.999 zero in the rheumatoid example, section \ref{subsection: rheumatoid}).
 
 \subsection{The Null Distribution}
 
-Working from the random forest output, we can form a $p \times p$ matrix of values such that the $\{i,j\}^{th}$ entry is the
-count of the number of times variable $v_i$ is followed by variable $v_j$.  If we sum the upper and lower triangular matrices
-and set the diagonal to 0, we form the interaction vector, of length $\frac {p(p-1)} 2 = {p \choose 2}$.
-This is likely to be large ($4 \times 10^9$ in the rheumatism example) and contain a large number of zeros (0.999 zeros
-in the rheumatism example).
-
-
-Efron's Empirical Bayes procedure (\cite{efronLargeScaleInferenceEmpirical2010}) is now widely used to determine levels
-of significance in high throughput genomics data analysis.
-These data sets led to the use of large numbers of parallel tests to determine the significant variables and then
-the use of multiple testing corrections \cite{limma.2015}.
-Efron suggests that instead of assuming a distribution, such as the $t$, 
-a the better approach is to use the large number of variables to model the null distribution, and then do
-significance testing.
+Efron's Empirical Bayes procedure \cite[]{efronLargeScaleInferenceEmpirical2010} is now widely used to determine levels of significance in
+high throughput genomics data analysis.  These data sets led to the use of large numbers of parallel tests to determine the significant
+variables and the use of multiple testing corrections \cite{limma.2015}.  Efron suggests that instead of assuming a distribution, such as
+the $t$, the better approach is to use the large number of variables to model the null distribution, and then do significance testing.
 
 
 Applying the insights of Efron's work to this problem we start with the assumption that:
@@ -492,9 +496,10 @@ f (j ) = \pi_0 f_0 (j ) + (1 - \pi_0 )f_1 (j )
 \]
 where $j$ is the count data, $f_0$ is the null distribution and $f_1$ is some contaminating distribution of the
 non-null counts. Following \cite{Gauran.et.al.2018} we could make the additional assumption that there is some integer $C$ such that
-\[
+\begin{equation}
   f(j ) = \pi_0 f_0 (j ) \textrm{ for } j \leq C.
-\]
+\label{eqn:C}  
+\end{equation}
 So we only have the null distribution for counts less than $C.$ 
 
 As we have count data we model the null distribution $f_0$ as a Poisson or  generalized Poisson ($g$, with parameters
@@ -504,7 +509,7 @@ distribution, then $J \sim ZIGP(\eta, \lambda, \theta)$ (zero-inflated generaliz
 \[
   f_0(j) = \eta I_{\{0\}} (j) + (1 - \eta) g(j) I_{\{0,1,2,\ldots \}} (j)
 \]
-where $j$ is a non-negative integer, $0 \leq \eta < 1$, $0 \leq \theta < 1$ and $\lambda > 0$. The indicator function
+where $0 \leq \eta < 1$, $0 \leq \theta < 1$ and $\lambda > 0$. The indicator function
 $I_S (j)$ is equal to 1 if $j \in  S$ and 0 otherwise. Fitting this model involves estimating $\{ \eta, \pi_0,
 \lambda$ and $\theta \}$. Having estimated the parameters we choose a cutoff value $D_n$, chosen to control the false
 discovery rate, so that counts $\geq  D_n$ are reported as significant.
@@ -530,23 +535,26 @@ See Table \ref{tab:expected_vs_observed} for the expected values for the counts 
 
 There are several options described in  \cite{Gauran.et.al.2018}.
 Using the ``one stage procedure'' and $C_1$ constant (see supplementary information)
-we get a $C$ value (ref equation) of 6 and and a $D_n$ value of 7 which gives us 57 significant interaction.
+we get a $C$ value (equation \ref{eqn:C}) of 6 and and a $D_n$ value of 7 which gives us 57 significant interaction.
 
 We note an important caveat here.  \cite{Gauran.et.al.2018} show that the significance level can be
-determined and the FDR controlled in a series of simulation examples. For example  Figure 1 (\cite{Gauran.et.al.2018})
+determined and the FDR controlled in a series of simulation examples. For example  Figure 1 \cite[]{Gauran.et.al.2018}
 shows an example where $\lambda =20$ for the null distribution and the contaminating distribution is a Binomial with
-$\mu=50.$
-It would appear that these examples all have $\lambda$ and $\mu$ (the mean of the contaminating distribution) with a
-greater separation than we have in the Rheumatoid data.
-Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forest with more
-trees and we will observe counts.
+$\mu=50.$ It would appear that these examples all have $\lambda$ and $\mu$ (the mean of the contaminating distribution) with a
+greater separation than we have in the Rheumatoid data. So we may have a more inteactable problem here.
 
-It appears that there is a trade-off  here. And as we are sampling a space of $4 \times 10^{9}$ possible interactions,
-we might have to increase the number of trees a lot to get a meaningful difference in the mean of the contaminating
-distribution.
+Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forest with more
+trees and we will observe more counts.
+There is a trade-off here and as we are sampling a space with typically more than $10^{9}$ possible interactions,
+we have to increase the number of trees a lot to get a meaningful difference in the mean of the contaminating
+distribution. Because of this we resort to a threshholding stratey that is both computationally easier and controls the FDR rate by testing
+each variable.
+
+
+\subsection{threshholding the data}
 In this case we have followed a simple strategy:
 \begin{itemize}
-\item threshold the observed count data. We do this a number of ways to do this (list them) and then take the median. IN
+\item threshold the observed count data. We do this a number of ways to do this (list them) and then take the median. In
   the case of the Rheumatoid data, this was 2 which gave us 222 interactions;
 \item test each interaction with a linear model (see below).
 \end{itemize}
@@ -604,7 +612,7 @@ Total  & 4,463,660,370 & 4,463,660,257 & 113 \\
 
 
 
-\section{Methods}
+
 % The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forest model was created using all avaiable data. Then for each pair 
 % of SNP, how many times they appeared as parent-child node in each of the decision trees were recorded. Then the SNP pairs were ranked based on
 % the count and only the pairs having count >= 2 were retained. Finally, using the linier equation the interaction term was tested. In our
@@ -615,12 +623,7 @@ Total  & 4,463,660,370 & 4,463,660,257 & 113 \\
 % interaction effects. A multiplicative epistasis model was used, where the interaction between two SNPs, $i$ and $j$,  were modelled as the
 % product of the two genotype values, using the following linear regression model:
 
-
-The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forests model is created using all
-available genomic data. For both the simulated and real data examples, the R package ranger
-\cite[]{Wright.and.Ziegler.2017} was used with the parameters \texttt{num.tree} = 1000 and \texttt{mtry} = \#SNPs/3.
-Once the Random Forests model is built, the number of times each pair of markers was found as parent-child nodes in all
-the decision trees were recorded. Then the marker pairs were ranked based on the count and only the pairs having count
+Then the marker pairs were ranked based on the count and only the pairs having count
 more than 2 were retained. A threshold of at least two ($t = 2$) appearances as parent-child nodes in the decision trees
 of the Random Forests was used because the use of one ($t = 1$) resulted in a substantially higher number of SNP pairs,
 often random occurrences, that did not improve the identification of interactions.  Finally, using linear models the
@@ -704,6 +707,7 @@ effects. The scenarios can be summarised as:
 
 
 \subsection{Real datasets -- Wellcome Trust Case Control Consortium data for rheumatoid arthritis}
+\label{subsection: rheumatoid}
 The first dataset was obtained from the Wellcome Trust Case Control Consortium (WTCCC)
 \cite[]{burtonGenomewideAssociationStudy2007brief}. The original dataset contains 14,000 cases for seven complex human
 diseases and 3,000 shared controls. The control individuals were from two different sources: 1958 British Birth Cohort
