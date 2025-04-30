@@ -22,42 +22,7 @@
 %%\documentclass[preprint,12pt]{elsarticle}
 
 %% Use the option review to obtain double line spacing
-\documentclass[authoryear,preprint,review,12pt]{elsarticle}
-
-\usepackage{threeparttable}
-\usepackage{url}
-\usepackage{rotating}
-\usepackage{multirow}
-\usepackage{tabularx}
-\usepackage{makecell}
-\usepackage{placeins}
-\usepackage{tikz}
-\usetikzlibrary{calc}
-%\usepackage[figuresleft]{rotating}
-
-%usepackage[nodisplayskipstretch]{setspace}\setstretch{1.5}
-
-\usepackage{amsmath}
-
-\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
-\newcommand{\DrawBox}[4][]{%
-    \tikz[overlay,remember picture]{%
-        \coordinate (TopLeft)     at ($(#2)+(-0.2em,0.9em)$);
-        \coordinate (BottomRight) at ($(#3)+(0.2em,-0.3em)$);
-        %
-        \path (TopLeft); \pgfgetlastxy{\XCoord}{\IgnoreCoord};
-        \path (BottomRight); \pgfgetlastxy{\IgnoreCoord}{\YCoord};
-        \coordinate (LabelPoint) at ($(\XCoord,\YCoord)!0.5!(BottomRight)$);
-        %
-        \draw [red,#1] (TopLeft) rectangle (BottomRight);
-        \node [below, #1, fill=none, fill opacity=1] at (LabelPoint) {#4};
-    }
-}
-
-\DeclareMathOperator{\logit}{\textrm{logit}}
-
-
-
+\documentclass[authoryear,preprint,12pt,3p]{elsarticle}
 
 %% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
 %% for a journal layout:
@@ -67,6 +32,39 @@
 %% \documentclass[final,3p,times,twocolumn]{elsarticle}
 %% \documentclass[final,5p,times]{elsarticle}
 %% \documentclass[final,5p,times,twocolumn]{elsarticle}
+%% https://tex.stackexchange.com/questions/261864/how-do-i-determine-the-attribute-of-elsarticle-document
+
+\usepackage{threeparttable}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{placeins}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage[figuresleft]{rotating}
+%\usepackage{rotating}
+
+%usepackage[nodisplayskipstretch]{setspace}\setstretch{1.5}
+
+\usepackage{amsmath}
+
+% \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+% \newcommand{\DrawBox}[4][]{%
+%     \tikz[overlay,remember picture]{%
+%         \coordinate (TopLeft)     at ($(#2)+(-0.2em,0.9em)$);
+%         \coordinate (BottomRight) at ($(#3)+(0.2em,-0.3em)$);
+%         %
+%         \path (TopLeft); \pgfgetlastxy{\XCoord}{\IgnoreCoord};
+%         \path (BottomRight); \pgfgetlastxy{\IgnoreCoord}{\YCoord};
+%         \coordinate (LabelPoint) at ($(\XCoord,\YCoord)!0.5!(BottomRight)$);
+%         %
+%         \draw [red,#1] (TopLeft) rectangle (BottomRight);
+%         \node [below, #1, fill=none, fill opacity=1] at (LabelPoint) {#4};
+%     }
+% }
+
+\DeclareMathOperator{\logit}{\textrm{logit}}
 
 %% For including figures, graphicx.sty has been loaded in
 %% elsarticle.cls. If you prefer to use the old commands
@@ -82,9 +80,10 @@
 %% The lineno packages adds line numbers. Start line numbering with
 %% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
 %% for the whole article with \linenumbers.
-\usepackage[switch, columnwise]{lineno}
+\usepackage[mathlines, switch, columnwise]{lineno}
 
-\journal{Nuclear Physics B}
+
+\journal{Computational and Structural Biotechnology Reports}
 
 \begin{document}
 
@@ -159,10 +158,10 @@ Epistatic interactions can play an important role in the genetic mechanisms that
   traits tested.
 \end{abstract}
 
-%%Graphical abstract
-\begin{graphicalabstract}
-%\includegraphics{grabs}
-\end{graphicalabstract}
+% %%Graphical abstract
+% \begin{graphicalabstract}
+% %\includegraphics{grabs}
+% \end{graphicalabstract}
 
 %%Research highlights
 \begin{highlights}
@@ -172,6 +171,8 @@ Epistatic interactions can play an important role in the genetic mechanisms that
 
 %% Keywords
 \begin{keyword}
+Epistatic interactions \sep  Random Forest \sep SNP data
+  
 %% keywords here, in the form: keyword \sep keyword
 
 %% PACS codes here, in the form: \PACS code \sep code
@@ -320,9 +321,6 @@ Appendix text.
 %\usepackage{showframe}
 
 
-% line numbers
-%\usepackage[mathlines, switch]{lineno}
-%\usepackage[switch, columnwise]{lineno}
 
 %\theoremstyle{thmstyleone}%
 %\newtheorem{theorem}{Theorem}%  meant for continuous numbers
