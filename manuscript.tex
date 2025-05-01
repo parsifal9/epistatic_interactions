@@ -102,19 +102,36 @@
 %% use the cortext command for theassociated footnote;
 %% use the ead command for the email address,
 %% and the form \ead[url] for the home page:
-\title{Detecting Interactions in Random Forest for Genomic Data}
+\title{Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests}
   
 \author{Hawlader A. Al-Mamun\corref{cor1}\fnref{label2}}
-\ead{halmamun@intergrain.com}
+\ead{hawlader.almamun@uwa.edu.au}
 %% \ead[url]{home page}
 %% \fntext[label2]{}
 %% \cortext[cor1]{}
-\affiliation{organization={},
-             addressline={},
-             city={},
-             postcode={},
-             state={},
-             country={}}
+\affiliation{organization={Agriculture \& Food, CSIRO},%Department and Organization
+  addressline={2 - 40 Clunies Ross Street}, 
+  city={Acton},
+  postcode={2601}, 
+  state={ACT},
+  country={Australia}}
+
+\affiliation{organization={InterGrain Pty Ltd.},%Department and Organization
+  addressline={19 Ambitious Link}, 
+  city={Bibra Lake},
+  postcode={6163}, 
+  state={WA},
+  country={Australia}}
+
+
+\affiliation{organization={School of Biological Sciences},%Department and Organization
+  addressline={The University of Western Australia}, 
+  city={Crawley},
+  postcode={6009}, 
+  state={WA},
+  country={Australia}}
+
+
 %% \fntext[label3]{}
 
 %% use optional labels to link authors explicitly to addresses:
@@ -132,16 +149,6 @@
 %%             postcode={},
 %%             state={},
 %%             country={}}
-
-\author{} %% Author name
-
-%% Author affiliation
-\affiliation{organization={},%Department and Organization
-            addressline={}, 
-            city={},
-            postcode={}, 
-            state={},
-            country={}}
 
 \author{Rob Dunne} %% Author name
 \affiliation{organization={Data61, CSIRO},%Department and Organization
@@ -162,10 +169,10 @@
 
 \author{Klara Verbyla}
 \affiliation{organization={Agriculture \& Food, CSIRO},%Department and Organization
-  addressline={306 Carmody Rd}, 
-  city={St Lucia},
-  postcode={4067}, 
-  state={QLD},
+  addressline={2 - 40 Clunies Ross Street}, 
+  city={Acton},
+  postcode={2601}, 
+  state={ACT},
   country={Australia}}
 
 
@@ -199,7 +206,7 @@ Epistatic interactions can play an important role in the genetic mechanisms that
 
 %% Keywords
 \begin{keyword}
-Epistatic interactions \sep  Random Forest \sep SNP data
+Epistatic interactions \sep  Random Forests \sep SNP data
   
 %% keywords here, in the form: keyword \sep keyword
 
@@ -324,11 +331,11 @@ Epistatic interactions \sep  Random Forest \sep SNP data
 
 % \abstract{Detecting epistatic interactions is very important because it will help us to understand the genetic mechanism
 %   on phenotypic variation. Finding epistatic interactions from high density SNP data is very challenging due to the
-%   computational burden induced by the combinatorial number of tests that have to be performed. Random Forest models were
-%   widely used in a variety of disciplines including epistatic interactions. Although Random Forest models account for
-%   variable interactions, it does not explicitly detect variable interactions. And most of the Random Forest based
+%   computational burden induced by the combinatorial number of tests that have to be performed. Random Forests models were
+%   widely used in a variety of disciplines including epistatic interactions. Although Random Forests models account for
+%   variable interactions, it does not explicitly detect variable interactions. And most of the Random Forests based
 %   methods to detect interactions relay on some kind of variable importance measures that suffer when the interacting
-%   variables have very small or no marginal effects. We proposed a Random Forest based method that is not based on
+%   variables have very small or no marginal effects. We proposed a Random Forests based method that is not based on
 %   variable importance and can find epistatic interactions from high density SNP markers in reasonable time. The proposed
 %   method was first applied on several simulation datasets representing different data structures with respect to SNP
 %   markers and heritibilities. Once the method was validated for finding epistatic interactions from simulated SNP data,
@@ -404,12 +411,12 @@ selection \cite[]{Jiang.et.al.2009, Meng.et.al.2007}.
 
 % Random Forests are an ensemble learning method first proposed by Leo Breiman \cite[]{Breiman2001}. Ensemble learning
 % combines multiple learning algorithms/models to improve prediction or classification performance beyond what could be
-% obtained from the constituent models.  In a Random Forest, \textit{m} random samples (with replacement) are selected by
+% obtained from the constituent models.  In a Random Forests, \textit{m} random samples (with replacement) are selected by
 % bootstrap sampling. Then multiple decision trees are created based on the bootstrap samples. To break
 % down the correlation between features, only a random subset of features is considered at any node of the tree building
 % process. For classification problems, the class of the validation data is predicted based on majority voting and for the
 % regression problem, the model outputs the mean of the individual trees prediction. There are two main parameters in the
-% implementation of Random Forest algorithm namely the number of decision trees (\texttt{num.trees}) and the number of
+% implementation of Random Forests algorithm namely the number of decision trees (\texttt{num.trees}) and the number of
 % randomly selected features (\texttt{mtry}) from which the best split is selected at any given node.
 
 
@@ -423,7 +430,7 @@ regression problem, the model outputs the mean of the individual tree's predicti
 implementation of the Random Forests algorithm, namely the number of decision trees (num.trees) and the number of
 randomly selected features (\texttt{mtry}) from which the best feature for splitting is selected at any given node.
 
-Random Forest models are widely used \cite[]{lundbergConsistentIndividualizedFeature2019} in a variety of
+Random Forests models are widely used \cite[]{lundbergConsistentIndividualizedFeature2019} in a variety of
 disciplines. The attraction of the model is based on several attributes, namely:
 \begin{itemize} 
 \item a high degree of accuracy;
@@ -433,9 +440,9 @@ disciplines. The attraction of the model is based on several attributes, namely:
 \end{itemize}
  
 In addition it is clear that Random Forests can perform well with correlated and interacting variables, at least in the
-sense that the fitted model performs well \cite[]{Ziegler.et.al.2007}. However, most of the Random Forest based
+sense that the fitted model performs well \cite[]{Ziegler.et.al.2007}. However, most of the Random Forests based
 approaches are either based on single variable importance \cite[]{Jiang.et.al.2009, yoshidaSNPInterForestNewMethod2011}
-or based on pairwise variable importance \cite[]{Ziegler.et.al.2007}. The Random Forest-based approaches for identifying
+or based on pairwise variable importance \cite[]{Ziegler.et.al.2007}. The Random Forests-based approaches for identifying
 interactions based on variable importance measurements cannot distinguish whether a discovered interaction is a true
 interaction or simply two variables with strong marginal effects. Additionally, if the interacting variables have small
 marginal effects, they will not appear near the top of the variable importance list. This means that detecting
@@ -447,15 +454,15 @@ real yeast cross data indicating that the RF-based methods outperform other comm
 epistasis.
 
 To overcome the challenge of a large number of pairwise SNP interaction tests, we proposed an effective two-step process
-based on our observations from using a Random Forest approach. Using simulation data, we observed that ``if two SNPs are
-interacting, they appear as parent-child nodes in a decision tree of a random forest more frequently than if they are
-not interacting''.
+based on our observations from using a Random Forests approach. Using simulation data, we observed that \textit{``if two SNPs are
+interacting, they appear as parent-child nodes in a decision tree of a Random Forests more frequently than if they are
+not interacting''}.
 
 % This observation was used to narrow down the vast search space of pairwise tests to detect SNP
-% interactions. First, we built a Random Forest and for each pair of SNPs we count the total number of times any SNP pair
+% interactions. First, we built a Random Forests and for each pair of SNPs we count the total number of times any SNP pair
 % occurred as parent-child nodes in this forest. Then we selected only the SNP pairs that occurred more times that would
 % be expected by chance and exceeded a set threshold of \textit{t}. In our study, we selected all the SNP pairs those have
-% at least two (\textit{t}=2) appearance as parent-child nodes in the decision trees of the Random Forest.  Finally, using
+% at least two (\textit{t}=2) appearance as parent-child nodes in the decision trees of the Random Forests.  Finally, using
 % a linear model, each selected SNP pair was tested to determine whether the interaction was significant.
 
 This new method and the validation results obtained using simulated data are presented in this manuscript. In
@@ -469,7 +476,7 @@ available genomic data. For both the simulated and real data examples, the R pac
 \cite[]{Wright.and.Ziegler.2017} was used with the parameters \texttt{num.tree} = 1000 and \texttt{mtry} = \#SNPs/3.
 %Once the Random Forests model is built, the number of times each pair of markers was found as parent-child nodes in all
 %the decision trees were recorded,
-Working from the random forest output, we can form a $p \times p$ matrix of values such that the $\{i,j\}^{th}$ entry is the count of the
+Working from the Random Forests output, we can form a $p \times p$ matrix of values such that the $\{i,j\}^{th}$ entry is the count of the
 number of times variable $v_i$ is followed by variable $v_j$.  If we sum the upper and lower triangular matrices and set the diagonal to 0,
 we form the interaction vector, of length $\frac {p(p-1)} 2 = {p \choose 2}$.  This is likely to be large and contain a large number of
 zeros ($4 \times 10^9$ entries and 0.999 zero in the rheumatoid example, section \ref{subsection: rheumatoid}).
@@ -515,7 +522,7 @@ $I_S (j)$ is equal to 1 if $j \in  S$ and 0 otherwise. Fitting this model involv
 discovery rate, so that counts $\geq  D_n$ are reported as significant.
 
 
-Using the Rheumatoid data as an example, we have $p= 94485$ and after fitting a random forest with
+Using the Rheumatoid data as an example, we have $p= 94485$ and after fitting a Random Forests with
 1000 trees we see about 290 non-terminal splits per tree. We observe 291142 splits with a distribution of frequencies
 given in the ``Observed'' column of Table \ref{tab:expected_vs_observed}.
 
@@ -543,7 +550,7 @@ shows an example where $\lambda =20$ for the null distribution and the contamina
 $\mu=50.$ It would appear that these examples all have $\lambda$ and $\mu$ (the mean of the contaminating distribution) with a
 greater separation than we have in the Rheumatoid data. So we may have a more inteactable problem here.
 
-Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forest with more
+Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forests with more
 trees and we will observe more counts.
 There is a trade-off here and as we are sampling a space with typically more than $10^{9}$ possible interactions,
 we have to increase the number of trees a lot to get a meaningful difference in the mean of the contaminating
@@ -559,7 +566,7 @@ In this case we have followed a simple strategy:
 \item test each interaction with a linear model (see below).
 \end{itemize}
 
-This, despite some processing of the linear models, is less time consuming than training a much larger Random Forest.
+This, despite some processing of the linear models, is less time consuming than training a much larger Random Forests.
 
 
 \begin{table}[htbp]
@@ -613,7 +620,7 @@ Total  & 4,463,660,370 & 4,463,660,257 & 113 \\
 
 
 
-% The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forest model was created using all avaiable data. Then for each pair 
+% The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forests model was created using all avaiable data. Then for each pair 
 % of SNP, how many times they appeared as parent-child node in each of the decision trees were recorded. Then the SNP pairs were ranked based on
 % the count and only the pairs having count >= 2 were retained. Finally, using the linier equation the interaction term was tested. In our
 % studies, we used the ranger R package \cite[]{Wright.and.Ziegler.2017} and we selected \texttt{num.tree} = 1000 and \texttt{mtry} =
@@ -715,7 +722,7 @@ diseases and 3,000 shared controls. The control individuals were from two differ
 from all 17,000 individuals were genotyped with the GeneChip 500K Mapping Array Set (Affymetrix chip).  The current
 analysis only used the data for rheumatoid arthritis (RA) that consisted of 4,798 individuals with 1,860 cases and 2,938
 controls. Variants having $>10\%$ missing values and MAFs$<0.05$ were removed. SNP markers that failed the
-Hardy-Weinberg test (p $\leq$ 0.05) were also removed. As linkage disequilibrium (LD) could affect how the Random Forest
+Hardy-Weinberg test (p $\leq$ 0.05) were also removed. As linkage disequilibrium (LD) could affect how the Random Forests
 (RF) algorithm selects a SNP at a particular node (for more detail how LD can affect RF, please see
 \cite{mengPerformanceRandomForest2009}), the dataset was also filtered based on LD. Using PLINK 1.9
 \cite[]{purcellPLINKToolSet2007} and a sliding window of 200 kb, one SNP from a pair of SNPs in that window was removed
@@ -731,26 +738,26 @@ phenotype ``weight at six weeks'' (W6W) was used.
 
 % \subsection{The Proposed Method -- count co-occurrences}
 % To overcome the challenge of a large number of pairwise interaction tests, we proposed an effective two-step process
-% based on our observations from using Random Forest. Using different simulation data, we observed that ``if two SNPs are
-% interacting, they appear as parent-child nodes in a decision tree of a random forest more frequently than if they are
+% based on our observations from using Random Forests. Using different simulation data, we observed that ``if two SNPs are
+% interacting, they appear as parent-child nodes in a decision tree of a Random Forests more frequently than if they are
 % not interacting''.  So, we utilised this observation to narrow down the vast search space of pairwise tests to detect
-% interactions. First, we build a random forest and for each pair of SNPs we count the total number of times any SNP pair
+% interactions. First, we build a Random Forests and for each pair of SNPs we count the total number of times any SNP pair
 % occurred as parent-child nodes in this forest. Then we select only the SNP pairs that occur more times that would be
 % expected by chance and exceed the set threshold. Finally, using a linear model, each selected SNP pair is tested to see
 % if the interaction is significant.
 
 
 \section{Results and Discussion}
-\subsection{simulated data}
+\subsection{Simulated data}
 % Based on publicly available pig genotype data, simulated phenotypes using different scenarios with various combinations
 % of number of SNPs, number of interacting SNP pairs, heritability, QTL effect size and interaction effect size were used.
 % The performance of the method was assessed based on the proportion of time the method selected the interacting SNP
 % pairs for pairwise interaction tests. Table \ref{table:ranking10qtl} shows the importance ranking of three interacting
-% SNP pairs based on the number of times they appear as parent-child in the Random Forest decision trees. Higher ranking,
+% SNP pairs based on the number of times they appear as parent-child in the Random Forests decision trees. Higher ranking,
 % represented by a smaller number, means a higher count. For example, a value of 1 for pair P3 means that SNP pair 3
-% appeared as parent-child more than any other SNP pair in that Random Forest. Since in the base model three pairs of
+% appeared as parent-child more than any other SNP pair in that Random Forests. Since in the base model three pairs of
 % interacting SNPs do not have any marginal effects or any interaction effects, they did not appear as parent-child in any
-% decision tree of the Random Forest. In the no interaction model, the three interacting SNP pairs appeared as
+% decision tree of the Random Forests. In the no interaction model, the three interacting SNP pairs appeared as
 % parent-child in some of the scenarios. This is because in the no interaction model, although the three pairs do not
 % have any interaction effect, they have their own marginal effects. Hence, they were selected at different nodes of the
 % decision trees. For the interaction model, rankings of the three interacting SNP pairs are relatively higher than the
@@ -826,10 +833,10 @@ Num SNP  & H2     &   \multicolumn{3}{|c|}{Base Model}&    \multicolumn{3}{|c|}{
 
 
 
-% In the proposed two step method for detecting SNP-SNP interactions, a random forest model was built and the count
+% In the proposed two step method for detecting SNP-SNP interactions, a random forests model was built and the count
 % determined for how many times a given pair of SNPs appears as parent-child. In the second step, only those SNP pairs
 % having the counts higher than a certain number t were tested. In this simulation, we set t = 2, meaning that if any of
-% the SNP pairs appeared as parent-child in the decision trees of the Random Forest for at least 2 times, we selected them
+% the SNP pairs appeared as parent-child in the decision trees of the Random Forests for at least 2 times, we selected them
 % to test for pairwise interaction using Equation 1. The third column of Table
 % \ref{table:Number.of.tests.performed.to.detect.interactions} shows the number of pair-wise interaction tests performed
 % with the interaction model for different combinations of heritability and number of SNPs. The fourth column of Table
@@ -870,7 +877,7 @@ Num SNP  & H2     &   \multicolumn{3}{|c|}{Base Model}&    \multicolumn{3}{|c|}{
 
 % \subsection{Effect of heritability and interactions p-value on the proposed method to detect candidate SNP pairs}
 % Figure \ref{figure:Eff_Trait_h2_simulated_data.png} shows the pairwise counts for each of the interacting SNP pairs in
-% each Random Forest at different heritabilities (h = 0.33, 0.50, 0.66, and 1.00) for 10,000 SNP with 10 QTL and 3 pairs
+% each Random Forests at different heritabilities (h = 0.33, 0.50, 0.66, and 1.00) for 10,000 SNP with 10 QTL and 3 pairs
 % of interacting SNPs. At low heritability, the pairwise count is smaller and as heritability increases, the pairwise
 % count also increases. Although the three interacting SNP pairs have very similar interaction effects (ranged between 0.3
 % to 0.4), they have very different numbers of counts. There is a direct relationship between the $p$-value of the
@@ -878,7 +885,7 @@ Num SNP  & H2     &   \multicolumn{3}{|c|}{Base Model}&    \multicolumn{3}{|c|}{
 % (correlation coefficient = 0.84). This is particularly interesting as even very small interaction effects with high
 % significance will not be overlooked because of higher pairwise count.
 
-\subsection{heritability}
+\subsection{Heritability}
 
 The effect of heritability on the method's performance was explored with the pairwise counts for each of the
 interacting SNP pairs in each Random Forests at different heritabilities (h2 = 0.33, 0.50, 0.66, and 1.00) for 10,000
@@ -982,7 +989,7 @@ pairs.
 
 \subsubsection{Rheumatoid arthritis data}
 % After pre-processing and filtering, the RA dataset contained 94,486 SNPs (~4.46 billion possible pairwise interaction
-% tests) and 4,798 individuals.  Using random forest, we have selected only 654 SNP pairs (out of more than 4.46 billion
+% tests) and 4,798 individuals.  Using Random Forests, we have selected only 654 SNP pairs (out of more than 4.46 billion
 % possible pairs) for pairwise interaction tests (Equation 2). Among the 654 SNP pairs, 26 pairs have significant
 % Bonferroni corrected interaction $p$-values ($p < 0.05$). In detail, 24 SNPs were involved in 26 significant interactions
 % among which 22 SNPs were from chromosome 6 and two other from chromosome 1 and chromosome 7. Furthermore, several SNPs
@@ -1304,7 +1311,7 @@ exploration.
 
 \section{Conclusion}
 % In this study, we proposed a simple and easy method to select candidate SNP pairs to test for interactions in large
-% genomic data. We used a Random Forest algorithm to select a subset of SNP pairs from a vast search space so that the
+% genomic data. We used a Random Forests algorithm to select a subset of SNP pairs from a vast search space so that the
 % selected SNP pairs can be tested for interaction in a reasonable computational time. The method was validated with
 % several simulation datasets representing different data structures (with respect to SNP marker density and
 % heritabilities). We then used the method to identify SNP interactions for two different traits (case-control data
