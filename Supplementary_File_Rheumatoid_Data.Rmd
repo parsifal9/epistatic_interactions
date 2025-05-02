@@ -1,5 +1,5 @@
 ---
-title: "The Rheumatoid Arthritis data  \nSupplementary File for "Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests"
+title: "The Rheumatoid Arthritis data  \nSupplementary File for  \n`Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests`"
 author: "Hawlader Al-Mamun,  Rob Dunne"
 date: "Wednesday, September 25, 2024"
 output: 
@@ -27,36 +27,17 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6, dpi=300,echo = FALSE)
 knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
  
 ```
-\clearpage
-# Notes
-
-- is the data available? What about the preprocessing? Can we include this in a vignette?
-- dim(dt)   4798 94485 but the paper says 94,486
-- looked at variable importance. Variables that have more splits as they are important are likely to have more consecutive splits. Should we take this into account?
-- I removed splits from AllInteractions where the split is on the same variable again. This does not matter for the regression method but might for other methods (Empirical Bayes)
-- There is a hotspot in chromosome 6. Did we know about this? Does it get dropped when you filter on LD
-- we are looking at the interaction as the product of the two SNP variables, so it takes the values $\{0,1,2,4\}$. so we are threating it as a
-  regression but it does not take the value 3.  If we treat them as factors we get levels(d1:d2) "0:0" "0:1" "0:2" "1:0" "1:1" "1:2" "2:0" "2:1" "2:2"
-  9 levels. Which is a more reasonable model? 
-- I look at using the **empiricalzip** (Empirical Bayes zero inflated Poisson) package to model the interaction counts and set a significance
-level. The agreement with the regression testing is not great.
-- we have the file "Cleaned_CaseControl_RAauto_pruned200kb_.3.bim"
-
-
-
-
 # load data
+
+We have 
 
 - 4798 samples
 - 94485 SNPs
 
-
-```{r, echo=FALSE, eval=FALSE}
+```{r, echo=TRUE, eval=FALSE}
 library(lmtest)
 library(ranger)
-#library(RCy3)
 
-#Noise <- 0.1
 numIte  <-  1
 t <- numIte
 ntree <- 1000
@@ -77,8 +58,10 @@ dim(dt) #[1]  4798 94485
 
 dt$pheno <- as.factor(dt$pheno)
 #dt <- dt[which(dt$treatment=="short"),-2]
+```
 
-# quick load of results etc
+```{r, echo=FALSE, eval=FALSE}
+# quick load of results etc if we have a
 dirOut  <-  paste0("Results")
 load(file="Results/var_importance_gini.Rdata")
 load(file=paste0(dirOut,"/All_Interactions.Rdata"))
@@ -90,37 +73,7 @@ load(file=paste0(dirOut,"/lm_results_fixed.Rdata"))
 # Fit a Random Forest
 
 ```{r, echo=FALSE, eval=FALSE}
-##Number of trees:                  1000 
-#set.seed(sample(1:1000,1))
 set.seed(100)
-#system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = ntree, mtry = ncol(dt)/3, importance = 'impurity'))
-#     user    system   elapsed 
-#89141.264     3.601  1568.711 
-#save(model.rf, file="model.rf.Rdata") 
-
-##Number of trees:                  5000 
-#system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = 5000, mtry = ncol(dt)/3))
-# user     system    elapsed 
-#443201.110      8.132   7185.540 
-#Number of trees:                  5000 
-#Sample size:                      4798 
-#Number of independent variables:  94484 
-#Mtry:                             31495 
-#Target node size:                 1 
-#Variable importance mode:         none 
-#Splitrule:                        gini 
-#OOB prediction error:             33.18 % 
-#save(model.rf, file="model.rf_temp2.Rdata")
-
-##Number of trees:   1000, importance = 'impurity'
-set.seed(100)
-#petrichor-i1: salloc -A OD-217714 --mem=100GB --nodes=1 --ntasks-per-node=64    -J interactive -t 6:00:00 srun --pty /bin/bash -l
-#etrichor-i1: sacct -j 60755241  --format="jobid,ntasks,Elapsed,TotalCPU,MaxRSS,AveVMSize,MaxVMSize"
-#JobID          NTasks    Elapsed   TotalCPU     MaxRSS  AveVMSize  MaxVMSize 
-#60755241                00:13:56  00:06.682                                  
-#60755241.ex+        1   00:13:56  00:00.001       995K    124080K    124080K 
-#60755241.0         64   00:13:53  00:06.680 104545713K 3274946112 192422568K 
-
 system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = ntree, mtry = ncol(dt)/3, importance = 'impurity'))
 #     user    system   elapsed 
 #89397.171     4.807  1591.941 
@@ -141,15 +94,16 @@ we use the pacakge RFlocalfdr to give an empirical Bayes estimate of the number 
 It returns 74 SNPs as significant. See figure \@ref(fig:RFlocalfdr). Note that this is just settng a significance level. These
 are the 74 SNPs with maximum variable importance from the random forest fit.
 
-```{r RFlocalfdr, eval=TRUE, echo=FALSE, fig.cap='RFlocalfdr',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./script3/RFlocalfdr.png")
+
+
+```{r RFlocalfdr, eval=TRUE, echo=FALSE, fig.cap='RFlocalfdr analysis',  fig.align = 'center', out.width = '50%'}
+knitr::include_graphics("./supp_figs/RFlocalfdr.png")
 
 ```
 
-```{R, echo=FALSE, eval=FALSE}
+```{R, echo=TRUE, eval=FALSE}
 library(RFlocalfdr)
 vignette(package="RFlocalfdr")
-#no vignettes found -- why is this?
 imp<-log(var_importance)  #6275 var_importance vales =0 
 plot(density(imp),xlab="log importances",main="")
 
@@ -159,14 +113,15 @@ plot(cutoffs,res.con[,3],pch=15,col="red",cex=1.5,ylab="max(abs(y - t1))")
 
 cutoffs <- c(4,5,6)
 res.con2 <- determine_cutoff(imp,t2 ,cutoff=cutoffs,plot=c(4,5,6))
-plot(c(0,1,2,3,4,5,6),c(res.con[,3],res.con2[,3]),pch=15,col="red",cex=1.5,ylab="max(abs(y - t1))")
+plot(c(0,1,2,3,4,5,6),c(res.con[,3],res.con2[,3]),pch=15,col="red",cex=1.5,
+     ylab="max(abs(y - t1))")
 
 temp<-imp[t2 > 3]
 temp <- temp - min(temp) + .Machine$double.eps
 qq <- plotQ(temp,debug.flag = 1)
 ppp<-run.it.importances(qq,temp,debug.flag = 0)
 
-png("./script3/RFlocalfdr.png")
+png("./supp_figs/RFlocalfdr.png")
 aa<-significant.genes(ppp,temp,cutoff=0.05,debug.flag=0,do.plot=TRUE,use_95_q=TRUE)
 dev.off()
 length(aa$probabilities) # 74
@@ -184,7 +139,6 @@ cbind(aa$probabilities,var_importance)
 
 ```
 
-
 # look at some SNP counts
 
 - this is the counts of how often a variable was used for a split in RF
@@ -192,7 +146,7 @@ cbind(aa$probabilities,var_importance)
 - There is a hotspot in chromosome 6. See figure \@ref(fig:hotspot)
 
 ```{r hotspot, eval=TRUE, echo=FALSE, fig.cap='There is a hotspot in chromosome 6',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./figs/hotspot.png")
+knitr::include_graphics("./supp_figs/hotspot.png")
 
 ```
 
@@ -230,18 +184,10 @@ t2[which(t2> 800)]
 
 ```
 
-# count the interactions in actual data
+# count the interactions in the data
 
-```{R, echo=FALSE,eval=FALSE}
-#t2 <- system.time({
-  
-  
-  # countMatrix <- matrix(0,ncol = ncol(dt)-1,nrow=ncol(dt)-1)
-  # row.names(countMatrix) <- colnames(dt)[-1]
-  # colnames(countMatrix) <- colnames(dt)[-1]
-  # 
-  
-  for(i in 1:ntree){
+```{R, echo=TRUE, eval=FALSE}
+for(i in 1:ntree){
     #tree2 <- getTree(model.rf2,i,T)
     tree <- treeInfo(model.rf,i)
     #tree <- treeInfo(model.n,5)
@@ -250,22 +196,22 @@ t2[which(t2> 800)]
     LeftinteractionTable[,1] <- tree$splitvarName
     
     for(l in 1:nrow(tree)){
-      if(is.na(tree[l,5])==F){
-        leftChildID = tree[l,2]
-        leftChildIndex = which(tree$nodeID==leftChildID)
-        LeftinteractionTable[l,2]=tree$splitvarName[leftChildIndex]
-      }
+        if(is.na(tree[l,5])==F){
+            leftChildID = tree[l,2]
+            leftChildIndex = which(tree$nodeID==leftChildID)
+            LeftinteractionTable[l,2]=tree$splitvarName[leftChildIndex]
+        }
     }
     RightinteractionTable = data.frame(matrix(0,nrow = nrow(tree),ncol=2))
     RightinteractionTable[,1]=tree$splitvarName
     
     for(l in 1:nrow(tree)){
-      if(is.na(tree[l,5])==F){
-        
-        rightChildID = tree[l,3]
-        rightChildIndex = which(tree$nodeID==rightChildID)
-        RightinteractionTable[l,2]=tree$splitvarName[rightChildIndex]
-      }
+        if(is.na(tree[l,5])==F){
+            
+            rightChildID = tree[l,3]
+            rightChildIndex = which(tree$nodeID==rightChildID)
+            RightinteractionTable[l,2]=tree$splitvarName[rightChildIndex]
+        }
     }
     
     
@@ -277,32 +223,31 @@ t2[which(t2> 800)]
     allInteractions[,2] = as.character(allInteractions[,2])
     
     if(i ==1){
-      index=which(allInteractions$X1> allInteractions$X2)
-      tmp=allInteractions$X2
-      tmp[index]=allInteractions$X1[index]
-      allInteractions$X1[index]= allInteractions$X2[index]
-      allInteractions$X2= tmp
-      All_Interactions=allInteractions
-      #allInteractions$X1_X2=paste0(allInteractions$X1," ",allInteractions$X2)
-      #countTable=table(allInteractions$X1_X2)
-      #All_count_dtf=data.frame(countTable)
+        index=which(allInteractions$X1> allInteractions$X2)
+        tmp=allInteractions$X2
+        tmp[index]=allInteractions$X1[index]
+        allInteractions$X1[index]= allInteractions$X2[index]
+        allInteractions$X2= tmp
+        All_Interactions=allInteractions
+        #allInteractions$X1_X2=paste0(allInteractions$X1," ",allInteractions$X2)
+        #countTable=table(allInteractions$X1_X2)
+        #All_count_dtf=data.frame(countTable)
     }else{
-      index=which(allInteractions$X1> allInteractions$X2)
-      tmp=allInteractions$X2
-      tmp[index]=allInteractions$X1[index]
-      allInteractions$X1[index]= allInteractions$X2[index]
-      allInteractions$X2= tmp
-      All_Interactions=rbind(All_Interactions,allInteractions)
-      
+        index=which(allInteractions$X1> allInteractions$X2)
+        tmp=allInteractions$X2
+        tmp[index]=allInteractions$X1[index]
+        allInteractions$X1[index]= allInteractions$X2[index]
+        allInteractions$X2= tmp
+        All_Interactions=rbind(All_Interactions,allInteractions)
+        
     }
-  }
+}
 
-#saveRDS(All_Interactions,paste0(dirOut,"/All_Interactions.rds"))
-#All_Interactions <- readRDS(paste0(dirOut,"/All_Interactions.rds"))
 #save(All_Interactions,file=paste0(dirOut,"/All_Interactions.Rdata"))
 #dim(All_Interactions) #[1] 294310      2
 
 ```
+
 ```{R, echo=FALSE, eval=FALSE}
 # just some checks on how  All_Interactions is organized. 
 head(All_Interactions)
@@ -359,7 +304,6 @@ t2[grep("X6_32682149",names(t2))] #  277
   - we  remove these from **All_Interactions**
   - save **interaction_snps_counts_fixed.Rdata**
 
-b
 
 ```{R, echo=FALSE, eval=FALSE}
 
@@ -413,256 +357,16 @@ aa
 
 sum(interaction_snps_counts$Freq) # 294120
 
-#saveRDS(interaction_snps_counts,paste0(dirOut,"/interaction_snps_counts_fixed.rds"))
-#interaction_snps_counts <- readRDS("./Results/interaction_snps_counts_fixed.rds")
 #save(interaction_snps_counts, file="./Results/interaction_snps_counts_fixed.Rdata")
 #load(file="./Results/interaction_snps_counts_fixed.Rdata")
 
-
-
 ```
 
 
-# run linear models 
-
-- we consider all interaction_snps where the frequency is greater than 2. That is 640 interactions 
-- we fit generalized linear models with an interaction term and record the term and the $p$-value
-- we fit models treating the SNP levels as factors, we fit a models with and witout the interaction term and do a likelihood ratio test
-- we have Bonferrroni, and FDR adjusted p-values for glm regression with numeric SNP and FDR adjusted p-values for LRT on factor interactions
-- the resulting data frame contains
-   
-   - interaction_snps  -- the interaction under consideration e.g. "X6_32308125 X6_32535726"
-   - Freq              -- the frequency of that interaction 
-   - SNP1_effect       -- Estimates
-   - SNP1_Pvalue       -- Pr(>|z|)
-   - SNP2_effect       -- Estimates
-   - SNP2_Pvalue       -- Pr(>|z|)
-   - int_effect   interaction term
-   - int_Pvalue
-   - correlations  cor(dt[,ind1],dt[,ind2])
-   - Ch2          lrtest(nested.model, s2) d1 d2 factors  Pr(>Chisq)
-   - splits_SNP1   number of times this varaible is the split varaible 
-   - splits_SNP2   number of times this varaible is the split varaible 
-   - adj_p_value_bonferrroni correction of int_Pvalue
-   - adj_p_value_fdr          fdr correction of int_Pvalue
-   - adj_p_value_Ch2          fdr correction of Ch2  
-
-so
-
-- Bonferrroni on numeric SNP regression picks 21
-- fdr on numeric SNP regression picks 88 (containing the 21 selected  by Bonferrroni )
-- $\chi^2$ test on SNP factor variables picks  121 (containing 68 of the 88 selected by fdr)
+# Null distribution
 
 
-```{R, echo=FALSE, eval=FALSE}
-
-index <- which(interaction_snps_counts$Freq>=2)  #640
-
-lm_results  <-  data.frame(interaction_snps_counts[index,],SNP1_effect=0,SNP1_Pvalue=1,SNP2_effect=0,SNP2_Pvalue=1,int_effect=0,int_Pvalue=1,Ch2=1)
-dim(lm_results)
-lm_results$correlations <- 0
-selectedSNPs <- "pheno"
-if(class(dt$pheno)=='factor'){
-  for(l in 1:nrow(lm_results)){
-    SNP1 <- strsplit(as.character(lm_results[l,1])," ")[[1]][1]
-    SNP2 <- strsplit(as.character(lm_results[l,1])," ")[[1]][2]
-    selectedSNPs <- union(selectedSNPs,SNP1)
-    selectedSNPs <- union(selectedSNPs,SNP2)
-    ind1  <-  which(colnames(dt)==SNP1)
-    ind2  <-  which(colnames(dt)==SNP2)
-    s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))$coeff
-#l<-31 
-#                        Estimate Std. Error    z value     Pr(>|z|)
-#(Intercept)            0.4202587 0.06693247   6.278846 3.410951e-10
-#dt[, ind1]            -0.2898685 0.06767282  -4.283382 1.840739e-05
-#dt[, ind2]            -1.0043861 0.07960751 -12.616726 1.707751e-36
-#dt[, ind1]:dt[, ind2]  0.2321571 0.06325044   3.670443 2.421308e-04
-   lm_results$correlations[l] <- cor(dt[,ind1],dt[,ind2])
-    #same as 
-    #s2  <-  summary(glm(dt$pheno ~ dt[,ind1] + dt[,ind2] + dt[,ind1]:dt[,ind2],family = binomial(link="logit")))
-    #s2$coeff
-
-    #as factors
-    d1<- factor(dt[,ind1])
-    d2<- factor(dt[,ind2])
-    
-    s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
-    nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
-    #anova(nested.model, s2, test="LRT") #or
-    aa<- lrtest(nested.model, s2)
-#Likelihood ratio test
-#
-#Model 1: dt$pheno ~ d1 + d2
-#Model 2: dt$pheno ~ d1 + d2 + d2:d2
-#  #Df  LogLik Df Chisq Pr(>Chisq)
-#1   5 -2985.5                    
-#2   5 -2985.5  0     0          1
-# 
-#H0: You should use the nested model.
-#Ha: You should use the complex model.
-#Pr(>Chisq)=1  so use the simple model
-
-     
-    
-    lm_results$splits_SNP1  <- t2[SNP1]
-    lm_results$splits_SNP2  <- t2[SNP2]
-    lm_results$Ch2[l] <- aa$"Pr(>Chisq)"[2]
-    lm_results$SNP1_effect[l]  <-  s[2,1]
-    lm_results$SNP1_Pvalue[l]  <-  s[2,4]
-    lm_results$SNP2_effect[l]  <-  s[3,1]
-    lm_results$SNP2_Pvalue[l]  <-  s[3,4]
-    lm_results$int_effect[l]  <-  s[4,1]
-    lm_results$int_Pvalue[l]  <-  s[4,4]
-    
-    
-  }
-}
-
-
-##############
-names(dt)[grep("X6_3",names(dt))]
-SNP1 #[1] "X6_32912392" #just the last ones to come out of  the calculation above
-SNP2 #[1] "X7_25326942"
-dim(All_Interactions[grep(SNP2,All_Interactions$X1),]) #2 2
-dim(All_Interactions[grep(SNP2,All_Interactions$X2),]) #35  2
-#interaction_snps_counts[grep("X7_25326942", interaction_snps_counts$interaction_snps),]
-aa<- interaction_snps_counts[grep("X6_32912392", interaction_snps_counts$interaction_snps),]
-aa[grep("X7_25326942", aa$interaction_snps),]
-#              interaction_snps Freq
-#282088 X6_32912392 X7_25326942    2
-
-grep("X6_32912392", lm_results[,1])
-lm_results[ 640,]
-#             interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect SNP2_Pvalue int_effect int_Pvalue       Ch2 correlations splits_SNP1 splits_SNP2
-#282086 X6_32912392 X7_25326942    2  -0.3853136 2.289531e-12 -0.02027243   0.7972829  0.1774552 0.04946914 0.1475998  0.004923941          18          14
-
-ind1 <- grep("X6_32912392",names(dt))
-ind2 <- grep("X7_25326942",names(dt))
-
-s  <-  summary(glm(dt$pheno ~ dt[, ind1]*dt[, ind2],family = binomial(link="logit")))$coeff
-#                                                                             Estimate Std. Error    z value     Pr(>|z|)
-#(Intercept)                                                               -0.25152373 0.04720520 -5.3283057 9.913319e-08
-#dt[, grep("X6_32912392", names(dt))]                                      -0.38531361 0.05492235 -7.0156068 2.289531e-12
-#dt[, grep("X7_25326942", names(dt))]                                      -0.02027243 0.07892247 -0.2568651 7.972829e-01
-#dt[, grep("X6_32912392", names(dt))]:dt[, grep("X7_25326942", names(dt))]  0.17745517 0.09032977  1.9645259 4.946914e-02
-
-d1<- factor(dt[,ind1])
-d2<- factor(dt[,ind2])
-s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
-nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
-aa<- lrtest(nested.model, s2)
-#Likelihood ratio test
-#Model 1: dt$pheno ~ d1 + d2
-#Model 2: dt$pheno ~ d1 + d2 + d1:d2
-#  #Df  LogLik Df  Chisq Pr(>Chisq)
-#1   5 -3174.1                     
-#2   9 -3170.7  4 6.7867     0.1476
-#all looks right
-
-##########
-lm_results <- lm_results[order(lm_results$int_Pvalue, decreasing = F),]
-lm_results$adj_p_value_bonferrroni <- lm_results$int_Pvalue*nrow(lm_results) # a bonferrroni correction?
-sum(lm_results$adj_p_value_bonferrroni < 0.05) #[1] 21
-
-lm_results$adj_p_value_fdr <- p.adjust(lm_results$int_Pvalue, method = "fdr")
-sum(lm_results$adj_p_value_fdr < 0.05) #[1] 88
-
-lm_results$adj_p_value_Ch2 <- p.adjust(lm_results$Ch2 , method = "fdr")
-sum(lm_results$adj_p_value_Ch2 < 0.05) #[1] 121
-length(intersect( which(lm_results$adj_p_value_fdr < 0.05), which(lm_results$adj_p_value_Ch2 < 0.05)))# [1] 68
-#save(lm_results, file=paste0(dirOut,"/lm_results_fixed.Rdata"))# fixed in the sense that the self-split pairs have been removed
-#load(file=paste0(dirOut,"/lm_results_fixed.Rdata"))
-
-names(lm_results)
-# [1] "interaction_snps"        "Freq"                    "SNP1_effect"             "SNP1_Pvalue"             "SNP2_effect"             "SNP2_Pvalue"             "int_effect"             
-# [8] "int_Pvalue"              "Ch2"                     "correlations"            "splits_SNP1"             "splits_SNP2"             "adj_p_value_bonferrroni" "adj_p_value_fdr"        
-#[15] "adj_p_value_Ch2"        
-lm_results[1:2,]
-#              interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect   int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2 adj_p_value_bonferrroni
-#280954 X6_32308125 X6_32535726   14  -1.0932552 5.783667e-39  -0.7248879 5.844399e-39  0.6083855 3.488304e-16 1.303556e-15  -0.14839455          18          14            2.232514e-13
-#280951 X6_32308125 X6_32423632    3  -0.9145729 2.243391e-31  -0.4717926 3.387561e-16  0.5723224 5.161507e-14 4.721907e-12   0.07261602          18          14            3.303364e-11
-#       adj_p_value_fdr adj_p_value_Ch2
-#280954    2.232514e-13    8.342758e-13
-#280951    1.651682e-11    1.007340e-09
-
-#so
-#
-#- Bonferrroni on numeric SNP regression picks 21
-#- fdr on numeric SNP regression picks 88
-#- $\chi^2$ test on SNP factor variables picks  121
-
-
-```
-
-
-```{R, echo=FALSE, eval=FALSE}
-# some plots of the  p-values for the different methods
-plot(lm_results$int_Pvalue,pch=16)
-points(lm_results$adj_p_value_fdr, col="red",pch=16)
-points(lm_results$adj_p_value_bonferrroni , col="green",pch=16)
-points(lm_results$adj_p_value_Ch2 , col="blue",pch=16)
-abline(h=0.05)
-legend(200,1,c("p-values, ordered", "fdr corrected", "Bonferroni corrected", "Chi2 p-values" ),pch=16,col=c("black", "red", "green","blue"))
-#some concordance between the regression p-values and the Chi^2 p-values
-#Bonferrroni finds 21, "fdr" finds 88 and \Chi^2 with fdr finds 121
-length(intersect(which(lm_results$adj_p_value_Ch2  < 0.05), which(lm_results$adj_p_value_fdr  < 0.05))) # 68
-
-
-lm_results.temp <- lm_results[order(lm_results$adj_p_value_Ch2, decreasing = F),]
-plot(lm_results.temp$int_Pvalue, col="black")
-points(lm_results.temp$adj_p_value_fdr, col="red")
-points(lm_results.temp$adj_p_value_bonferrroni , col="green")
-points(lm_results.temp$adj_p_value_Ch2 , col="blue")
-abline(h=0.05)
-#same thing
-
-lm_results.temp[22,]
- #              interaction_snps Freq SNP1_effect SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2
-#180240 X1_161191571 X6_32771829    2  -0.0257612   0.6986353  -0.8204181 3.832185e-29 0.00295658  0.9636916 4.178291e-05  0.001961207          18          14
-#       adj_p_value_bonferrroni adj_p_value_fdr adj_p_value_Ch2
-#180240                616.7626       0.9821061     0.001215503
-
-ind1  <-  which(colnames(dt)=="X1_161191571")
-ind2  <-  which(colnames(dt)=="X6_32771829")
-s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))
-#as factors
-d1<- factor(dt[,ind1])
-d2<- factor(dt[,ind2])
-s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
-nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
-aa <- lrtest(nested.model, s2)
-#Likelihood ratio test  aa$"Pr(>Chisq)" 4.178291e-05
-# so the adj_p_value_fdr  is not significant but the adj_p_value_Ch2 is
-
-options(width=195)
-lm_results[1:21,]
-
-
-# the top imp SNPs (selected by RFlocafdr) and how often they appear in the top interactions (glm, selected by FDR)
-aa<-rep(NA, 74)
-for ( i in 1:74){
-    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
-    }
-# proving what? The SNPs selected by RFlocafdr are not selected as interactions
-
-aa<-rep(NA, 74)
-for ( i in 1:74){
-    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
-    }
-# proving what? The SNPs selected by RFlocafdr are not selected as interactions
-
-
-for ( i in 1:74){
-    aa[i] <- length(grep(imp[i],lm_results$interaction_snps[1:88]))
-    }
-aa
-#[1] 34 22 11  3  6  4  6  8  4  2  3  2  3  0  3  2  2  0  2  1  0  0  0  1  3
-#[26]  2  0  1  0  0  1  0  1  1  0  0  0  1  0  0  0  0  1  0  0  0  0  0  1  0
-#[51]  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0
-
-```
-
-# data set up
+## data set up
 
 ```{R, echo=FALSE, eval=FALSE}
 
@@ -701,29 +405,7 @@ x_sample <- sample(counts, size = sample_size, replace = TRUE, prob = sample_pro
 
 ```
 
-# Null distribution
-
-What would the distribution of counts look like if 291142 interactions were assigned randomly?
-Under a random assignment, this follows a binomial distribution that can be approximated by a Poisson distribution with:
-$\lambda= 291,142 / 4,463,565,886 \approx 0.000065$
-
--  Count = 1: approximately 290,849 pairs
--  Count = 2: approximately 9.5 pairs
--  Count $\geq 3$: effectively 0 pairs
-
-The observed data shows:
-
-- Count = 1: 290502  pairs
--  Count = 2: 418   pairs
--  Count = 3: 89  pairs
--  Count $\geq 4$: 133 pairs
-
-
-
-\clearpage
-\FloatBarrier
-
-# empiricalzip
+## empiricalzip
 
 - There are  4463613128 potential interactions. We have non-zero values for 294120, so there are a lot of 0 values.
 - what to do to handle this? 
@@ -815,70 +497,6 @@ $>$20 & 22 & $\approx$0 \\
 \end{table}
 
 
-
-
-```{R, echo=FALSE, eval=FALSE}
-# protein example (move this)
-
-the protein exaple from @gauranEmpiricalNullEstimation2018
-library(empiricalzip)
-data(protein, package="empiricalzip")
-k<-1
-x <- protein[,(k+1)][!is.na(protein[,(k+1)])]
-M <- length(x)
-cf <- 10^(-10)
-count <- c(length(x[which(x==0)]), tabulate(x, nbins = max(x)))
-names(count) <- c(0:max(x))
-aa <- my.RealDataFDR(x, 0.1) #
-##     ZIGP ZIP   GP  P         ZIGP ZIP   GP  P        ZIGP  ZIP     GP  P
-##      one stage procedure      two stage             Storey's FDR
-## [1,]  191  212  212  212      201  212  223  212     200   211   211   211
-## [2,]  143  205  212  212      143  205  229  212     162   204   211   211
-
-## [[2]]
-## #        eta      lambda    theta      pi    C0   AD   
-## [1,] 0.3245463 1.9167862 0.1415783 0.4576160    6    7
-## [2,] 0.2288849 1.0948534        NA 0.3985044    3    6
-## [3,]        NA 0.8082199 0.0000000 0.3944174    3    4
-## [4,]        NA 0.8082199        NA 0.3944174    3    6
-
-## [[3]]
-##           [,1]      [,2]      [,3]      [,4] [,5] [,6]
-## [1,] 0.2251642 2.1452087 0.5741445 0.6141275    4   36
-## [2,] 0.2759650 1.3856234        NA 0.4244176    2    6
-## [3,]        NA 0.7994067 0.0000000 0.3929166    2    3
-## [4,]        NA 0.7994067        NA 0.3929166    2    6
-
-# ZIGP parameters
-eta <- 0.3245463
-lambda <- 1.9167862 
-theta <- 0.1415783
-
-# Generate the plots and analysis
-results <- plot_zigp_comparison(
-  observed_counts = count,
-  eta = eta,
-  lambda = lambda, 
-  theta = theta,
-  max_display = 30,
-  y_min = -15  # Extended y-axis
-)
-
-results$log_scale_tail
-abline(v=6)
-
-plot_normalized_mixture(
-   eta = eta,
-   lambda =  lambda, 
-   theta = theta,
-   pi0 = 1,
-   n_binom = 15,
-   p_binom = 0.2,
-   shift = 7
-)
-
-```
-
 ```{R, echo=FALSE, eval=FALSE}
 
 # Create a named vector with the observed counts
@@ -920,19 +538,17 @@ print(paste("Count with maximum positive deviation:",
             results$separation_analysis$Count[max_positive_deviation]))
 
 # Save the improved plot
-#ggsave("./script3/zigp_log_scale_extended.png", results$log_scale, width = 10, height = 6)
+#ggsave("./supp_figs/zigp_log_scale_extended.png", results$log_scale, width = 10, height = 6)
 #ggsave("zigp_ratio_plot.png", results$ratio_plot, width = 10, height = 6)
 
 
 ```
 
 ```{r zigplogscaleextended, eval=TRUE, echo=FALSE, fig.cap='empiricalzip fitted ZIPG',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./script3/zigp_log_scale_extended.png")
+knitr::include_graphics("./supp_figs/zigp_log_scale_extended.png")
 
 ```
 
-\clearpage
-\FloatBarrier
 ## Local FDR Calculation
 The local FDR (false discovery rate) at a particular count value is calculated as:
 
@@ -1181,56 +797,6 @@ print(results$significant_counts)
 ```
 
 
-
-
-# hurdle model implementation
-
-```{R, echo=FALSE, eval=FALSE}
-
-
-library(pscl)  # For hurdle model implementation
-
-# Fit a hurdle model
-hurdle_model <- hurdle(
-  x ~ 1,               # Formula (just intercept in this simple case)
-  data = data.frame(x = x_sample),
-  dist = "negbin",     # Distribution for non-zero counts
-  zero.dist = "binomial" # Distribution for zero vs non-zero process
-)
-
-summary(hurdle_model)
-
-```
-
-```{R, echo=FALSE, eval=FALSE}
-# what is this? remove it
-# Custom function for extreme zero-inflation
-extreme_zero_model <- function(x, min_count = 3) {
-  # Calculate basic statistics
-  zeros <- sum(x == 0)
-  n <- length(x)
-  p_zero <- zeros/n
-  
-  # Estimate significance threshold
-  # For extreme zero-inflation, we can use empirical approach
-  unique_counts <- sort(unique(x))
-  freq_table <- table(x)
-  
-  # Simple rule: counts are significant when they occur with 
-  # frequency less than 0.1% of non-zero observations
-  rarity_threshold <- 0.001 * (n - zeros)
-  significant <- unique_counts[unique_counts >= min_count & 
-                              freq_table[as.character(unique_counts)] < rarity_threshold]
-  
-  return(list(
-    p_zero = p_zero,
-    significant_counts = significant
-  ))
-}
-
-```
-
-
 # what is this 
 ```{R, echo=FALSE,eval=FALSE} 
 
@@ -1317,13 +883,13 @@ print(results$comparison)
 
 print(paste("Best model:", results$best_model))
 
-#png("./script3/ZI_Zipf_plot.png")
+#png("./supp_figs/ZI_Zipf_plot.png")
 results$plots$"ZI_Zipf"
 #dev.off()
-#png("./script3/ZIGP_plot.png")
+#png("./supp_figs/ZIGP_plot.png")
 results$plots$"ZIGP"
 #dev.off()
-#png("./script3/ZINB_plot.png")
+#png("./supp_figs/ZINB_plot.png")
 results$plots$"ZINB"
 #dev.off()
 
@@ -1335,15 +901,15 @@ results$parameters
 ```
 
 ```{R, zipfplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Power Law (Zipf) Distribution", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./script3/ZI_Zipf_plot.png")
+knitr::include_graphics("./supp_figs/ZI_Zipf_plot.png")
 ```
 
 ```{R, zigpplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Generalized Poisson", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./script3/ZIGP_plot.png")
+knitr::include_graphics("./supp_figs/ZIGP_plot.png")
 ```
 
 ```{R, zinbplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Negative Binomial", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./script3/ZINB_plot.png")
+knitr::include_graphics("./supp_figs/ZINB_plot.png")
 ```
 
 ```{R, echo=FALSE, eval=FALSE}
@@ -1845,7 +1411,7 @@ The Core Issue: Extreme Zero-Inflation
 - A true power law would show a straight line. Deviations suggest a different distribution.
 ```{R, echo=FALSE, eval=FALSE}
 # Plot log(frequency) vs log(count)
-png("./script3/power_law.png")
+png("./supp_figs/power_law.png")
 plot(log(counts[counts > 0]), log(freqs[counts > 0]), 
      xlab="log(count)", ylab="log(frequency)")
 abline(lm(log(freqs[counts > 0]) ~ log(counts[counts > 0])))
@@ -1854,7 +1420,7 @@ dev.off()
 ```
 
 ```{R, powerlaw, echo=FALSE, eval=TRUE, fig.cap="Plot of log(frequency) vs log(count). A power law would show a straight line", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./script3/power_law.png")
+knitr::include_graphics("./supp_figs/power_law.png")
 ```
 
 
@@ -2317,6 +1883,246 @@ rheumatoid_thresholds$thresholds$recommended
 
 plot_thresholds(rheumatoid_thresholds)
 print(rheumatoid_thresholds$thresholds$recommended)
+
+```
+
+
+# run linear models 
+
+- we consider all interaction_snps where the frequency is greater than 2. That is 640 interactions 
+- we fit generalized linear models with an interaction term and record the term and the $p$-value
+- we fit models treating the SNP levels as factors, we fit a models with and witout the interaction term and do a likelihood ratio test
+- we have Bonferrroni, and FDR adjusted p-values for glm regression with numeric SNP and FDR adjusted p-values for LRT on factor interactions
+- the resulting data frame contains
+   
+   - interaction_snps  -- the interaction under consideration e.g. "X6_32308125 X6_32535726"
+   - Freq              -- the frequency of that interaction 
+   - SNP1_effect       -- Estimates
+   - SNP1_Pvalue       -- Pr(>|z|)
+   - SNP2_effect       -- Estimates
+   - SNP2_Pvalue       -- Pr(>|z|)
+   - int_effect   interaction term
+   - int_Pvalue
+   - correlations  cor(dt[,ind1],dt[,ind2])
+   - Ch2          lrtest(nested.model, s2) d1 d2 factors  Pr(>Chisq)
+   - splits_SNP1   number of times this varaible is the split varaible 
+   - splits_SNP2   number of times this varaible is the split varaible 
+   - adj_p_value_bonferrroni correction of int_Pvalue
+   - adj_p_value_fdr          fdr correction of int_Pvalue
+   - adj_p_value_Ch2          fdr correction of Ch2  
+
+so
+
+- Bonferrroni on numeric SNP regression picks 21
+- fdr on numeric SNP regression picks 88 (containing the 21 selected  by Bonferrroni )
+- $\chi^2$ test on SNP factor variables picks  121 (containing 68 of the 88 selected by fdr)
+
+
+```{R, echo=FALSE, eval=FALSE}
+
+index <- which(interaction_snps_counts$Freq>=2)  #640
+
+lm_results  <-  data.frame(interaction_snps_counts[index,],SNP1_effect=0,SNP1_Pvalue=1,SNP2_effect=0,SNP2_Pvalue=1,int_effect=0,int_Pvalue=1,Ch2=1)
+dim(lm_results)
+lm_results$correlations <- 0
+selectedSNPs <- "pheno"
+if(class(dt$pheno)=='factor'){
+  for(l in 1:nrow(lm_results)){
+    SNP1 <- strsplit(as.character(lm_results[l,1])," ")[[1]][1]
+    SNP2 <- strsplit(as.character(lm_results[l,1])," ")[[1]][2]
+    selectedSNPs <- union(selectedSNPs,SNP1)
+    selectedSNPs <- union(selectedSNPs,SNP2)
+    ind1  <-  which(colnames(dt)==SNP1)
+    ind2  <-  which(colnames(dt)==SNP2)
+    s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))$coeff
+#l<-31 
+#                        Estimate Std. Error    z value     Pr(>|z|)
+#(Intercept)            0.4202587 0.06693247   6.278846 3.410951e-10
+#dt[, ind1]            -0.2898685 0.06767282  -4.283382 1.840739e-05
+#dt[, ind2]            -1.0043861 0.07960751 -12.616726 1.707751e-36
+#dt[, ind1]:dt[, ind2]  0.2321571 0.06325044   3.670443 2.421308e-04
+   lm_results$correlations[l] <- cor(dt[,ind1],dt[,ind2])
+    #same as 
+    #s2  <-  summary(glm(dt$pheno ~ dt[,ind1] + dt[,ind2] + dt[,ind1]:dt[,ind2],family = binomial(link="logit")))
+    #s2$coeff
+
+    #as factors
+    d1<- factor(dt[,ind1])
+    d2<- factor(dt[,ind2])
+    
+    s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+    nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+    #anova(nested.model, s2, test="LRT") #or
+    aa<- lrtest(nested.model, s2)
+#Likelihood ratio test
+#
+#Model 1: dt$pheno ~ d1 + d2
+#Model 2: dt$pheno ~ d1 + d2 + d2:d2
+#  #Df  LogLik Df Chisq Pr(>Chisq)
+#1   5 -2985.5                    
+#2   5 -2985.5  0     0          1
+# 
+#H0: You should use the nested model.
+#Ha: You should use the complex model.
+#Pr(>Chisq)=1  so use the simple model
+
+     
+    
+    lm_results$splits_SNP1  <- t2[SNP1]
+    lm_results$splits_SNP2  <- t2[SNP2]
+    lm_results$Ch2[l] <- aa$"Pr(>Chisq)"[2]
+    lm_results$SNP1_effect[l]  <-  s[2,1]
+    lm_results$SNP1_Pvalue[l]  <-  s[2,4]
+    lm_results$SNP2_effect[l]  <-  s[3,1]
+    lm_results$SNP2_Pvalue[l]  <-  s[3,4]
+    lm_results$int_effect[l]  <-  s[4,1]
+    lm_results$int_Pvalue[l]  <-  s[4,4]
+    
+    
+  }
+}
+
+
+##############
+names(dt)[grep("X6_3",names(dt))]
+SNP1 #[1] "X6_32912392" #just the last ones to come out of  the calculation above
+SNP2 #[1] "X7_25326942"
+dim(All_Interactions[grep(SNP2,All_Interactions$X1),]) #2 2
+dim(All_Interactions[grep(SNP2,All_Interactions$X2),]) #35  2
+#interaction_snps_counts[grep("X7_25326942", interaction_snps_counts$interaction_snps),]
+aa<- interaction_snps_counts[grep("X6_32912392", interaction_snps_counts$interaction_snps),]
+aa[grep("X7_25326942", aa$interaction_snps),]
+#              interaction_snps Freq
+#282088 X6_32912392 X7_25326942    2
+
+grep("X6_32912392", lm_results[,1])
+lm_results[ 640,]
+#             interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect SNP2_Pvalue int_effect int_Pvalue       Ch2 correlations splits_SNP1 splits_SNP2
+#282086 X6_32912392 X7_25326942    2  -0.3853136 2.289531e-12 -0.02027243   0.7972829  0.1774552 0.04946914 0.1475998  0.004923941          18          14
+
+ind1 <- grep("X6_32912392",names(dt))
+ind2 <- grep("X7_25326942",names(dt))
+
+s  <-  summary(glm(dt$pheno ~ dt[, ind1]*dt[, ind2],family = binomial(link="logit")))$coeff
+#                                                                             Estimate Std. Error    z value     Pr(>|z|)
+#(Intercept)                                                               -0.25152373 0.04720520 -5.3283057 9.913319e-08
+#dt[, grep("X6_32912392", names(dt))]                                      -0.38531361 0.05492235 -7.0156068 2.289531e-12
+#dt[, grep("X7_25326942", names(dt))]                                      -0.02027243 0.07892247 -0.2568651 7.972829e-01
+#dt[, grep("X6_32912392", names(dt))]:dt[, grep("X7_25326942", names(dt))]  0.17745517 0.09032977  1.9645259 4.946914e-02
+
+d1<- factor(dt[,ind1])
+d2<- factor(dt[,ind2])
+s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+aa<- lrtest(nested.model, s2)
+#Likelihood ratio test
+#Model 1: dt$pheno ~ d1 + d2
+#Model 2: dt$pheno ~ d1 + d2 + d1:d2
+#  #Df  LogLik Df  Chisq Pr(>Chisq)
+#1   5 -3174.1                     
+#2   9 -3170.7  4 6.7867     0.1476
+#all looks right
+
+##########
+lm_results <- lm_results[order(lm_results$int_Pvalue, decreasing = F),]
+lm_results$adj_p_value_bonferrroni <- lm_results$int_Pvalue*nrow(lm_results) # a bonferrroni correction?
+sum(lm_results$adj_p_value_bonferrroni < 0.05) #[1] 21
+
+lm_results$adj_p_value_fdr <- p.adjust(lm_results$int_Pvalue, method = "fdr")
+sum(lm_results$adj_p_value_fdr < 0.05) #[1] 88
+
+lm_results$adj_p_value_Ch2 <- p.adjust(lm_results$Ch2 , method = "fdr")
+sum(lm_results$adj_p_value_Ch2 < 0.05) #[1] 121
+length(intersect( which(lm_results$adj_p_value_fdr < 0.05), which(lm_results$adj_p_value_Ch2 < 0.05)))# [1] 68
+#save(lm_results, file=paste0(dirOut,"/lm_results_fixed.Rdata"))# fixed in the sense that the self-split pairs have been removed
+#load(file=paste0(dirOut,"/lm_results_fixed.Rdata"))
+
+names(lm_results)
+# [1] "interaction_snps"        "Freq"                    "SNP1_effect"             "SNP1_Pvalue"             "SNP2_effect"             "SNP2_Pvalue"             "int_effect"             
+# [8] "int_Pvalue"              "Ch2"                     "correlations"            "splits_SNP1"             "splits_SNP2"             "adj_p_value_bonferrroni" "adj_p_value_fdr"        
+#[15] "adj_p_value_Ch2"        
+lm_results[1:2,]
+#              interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect   int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2 adj_p_value_bonferrroni
+#280954 X6_32308125 X6_32535726   14  -1.0932552 5.783667e-39  -0.7248879 5.844399e-39  0.6083855 3.488304e-16 1.303556e-15  -0.14839455          18          14            2.232514e-13
+#280951 X6_32308125 X6_32423632    3  -0.9145729 2.243391e-31  -0.4717926 3.387561e-16  0.5723224 5.161507e-14 4.721907e-12   0.07261602          18          14            3.303364e-11
+#       adj_p_value_fdr adj_p_value_Ch2
+#280954    2.232514e-13    8.342758e-13
+#280951    1.651682e-11    1.007340e-09
+
+#so
+#
+#- Bonferrroni on numeric SNP regression picks 21
+#- fdr on numeric SNP regression picks 88
+#- $\chi^2$ test on SNP factor variables picks  121
+
+
+```
+
+
+```{R, echo=FALSE, eval=FALSE}
+# some plots of the  p-values for the different methods
+plot(lm_results$int_Pvalue,pch=16)
+points(lm_results$adj_p_value_fdr, col="red",pch=16)
+points(lm_results$adj_p_value_bonferrroni , col="green",pch=16)
+points(lm_results$adj_p_value_Ch2 , col="blue",pch=16)
+abline(h=0.05)
+legend(200,1,c("p-values, ordered", "fdr corrected", "Bonferroni corrected", "Chi2 p-values" ),pch=16,col=c("black", "red", "green","blue"))
+#some concordance between the regression p-values and the Chi^2 p-values
+#Bonferrroni finds 21, "fdr" finds 88 and \Chi^2 with fdr finds 121
+length(intersect(which(lm_results$adj_p_value_Ch2  < 0.05), which(lm_results$adj_p_value_fdr  < 0.05))) # 68
+
+
+lm_results.temp <- lm_results[order(lm_results$adj_p_value_Ch2, decreasing = F),]
+plot(lm_results.temp$int_Pvalue, col="black")
+points(lm_results.temp$adj_p_value_fdr, col="red")
+points(lm_results.temp$adj_p_value_bonferrroni , col="green")
+points(lm_results.temp$adj_p_value_Ch2 , col="blue")
+abline(h=0.05)
+#same thing
+
+lm_results.temp[22,]
+ #              interaction_snps Freq SNP1_effect SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2
+#180240 X1_161191571 X6_32771829    2  -0.0257612   0.6986353  -0.8204181 3.832185e-29 0.00295658  0.9636916 4.178291e-05  0.001961207          18          14
+#       adj_p_value_bonferrroni adj_p_value_fdr adj_p_value_Ch2
+#180240                616.7626       0.9821061     0.001215503
+
+ind1  <-  which(colnames(dt)=="X1_161191571")
+ind2  <-  which(colnames(dt)=="X6_32771829")
+s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))
+#as factors
+d1<- factor(dt[,ind1])
+d2<- factor(dt[,ind2])
+s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+aa <- lrtest(nested.model, s2)
+#Likelihood ratio test  aa$"Pr(>Chisq)" 4.178291e-05
+# so the adj_p_value_fdr  is not significant but the adj_p_value_Ch2 is
+
+options(width=195)
+lm_results[1:21,]
+
+
+# the top imp SNPs (selected by RFlocafdr) and how often they appear in the top interactions (glm, selected by FDR)
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
+    }
+# proving what? The SNPs selected by RFlocafdr are not selected as interactions
+
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
+    }
+# proving what? The SNPs selected by RFlocafdr are not selected as interactions
+
+
+for ( i in 1:74){
+    aa[i] <- length(grep(imp[i],lm_results$interaction_snps[1:88]))
+    }
+aa
+#[1] 34 22 11  3  6  4  6  8  4  2  3  2  3  0  3  2  2  0  2  1  0  0  0  1  3
+#[26]  2  0  1  0  0  1  0  1  1  0  0  0  1  0  0  0  0  1  0  0  0  0  0  1  0
+#[51]  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0
 
 ```
 
