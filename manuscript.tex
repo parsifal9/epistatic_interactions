@@ -22,7 +22,12 @@
 %%\documentclass[preprint,12pt]{elsarticle}
 
 %% Use the option review to obtain double line spacing
-\documentclass[authoryear,preprint,12pt,3p]{elsarticle}
+\documentclass[preprint,12pt,3p]{elsarticle}
+%%if you are using elsarticle.cls, do not use it with options
+%%    \documentclass[authoryear]{elsarticle}
+%% and the style
+%% \bibliographystyle{elsarticle-num}
+%% https://tex.stackexchange.com/questions/54480/package-natbib-error-bibliography-not-compatible-with-author-year-citations
 
 %% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
 %% for a journal layout:
@@ -43,26 +48,10 @@
 \usepackage{tikz}
 \usetikzlibrary{calc}
 \usepackage[figuresleft]{rotating}
-%\usepackage{rotating}
 
 %usepackage[nodisplayskipstretch]{setspace}\setstretch{1.5}
 
 \usepackage{amsmath}
-
-% \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
-% \newcommand{\DrawBox}[4][]{%
-%     \tikz[overlay,remember picture]{%
-%         \coordinate (TopLeft)     at ($(#2)+(-0.2em,0.9em)$);
-%         \coordinate (BottomRight) at ($(#3)+(0.2em,-0.3em)$);
-%         %
-%         \path (TopLeft); \pgfgetlastxy{\XCoord}{\IgnoreCoord};
-%         \path (BottomRight); \pgfgetlastxy{\IgnoreCoord}{\YCoord};
-%         \coordinate (LabelPoint) at ($(\XCoord,\YCoord)!0.5!(BottomRight)$);
-%         %
-%         \draw [red,#1] (TopLeft) rectangle (BottomRight);
-%         \node [below, #1, fill=none, fill opacity=1] at (LabelPoint) {#4};
-%     }
-% }
 
 \DeclareMathOperator{\logit}{\textrm{logit}}
 
@@ -87,9 +76,6 @@
 
 \begin{document}
 
-\tableofcontents 
-\clearpage
-
 \begin{frontmatter}
 
 %% Title, authors and addresses
@@ -105,7 +91,7 @@
 \title{Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests}
   
 \author{Hawlader A. Al-Mamun\corref{cor1}\fnref{label2}}
-\ead{hawlader.almamun@uwa.edu.au}
+\ead{halmamun@intergrain.com}
 %% \ead[url]{home page}
 %% \fntext[label2]{}
 %% \cortext[cor1]{}
@@ -159,7 +145,7 @@
   country={Australia}}
 
 \author{Ross L. Tellam}
-\affiliation{organization={Agriculture \& Food, CSIRO},%Department and Organization
+\affiliation{organization={CSIRO Agriculture and Food},%Department and Organization
   addressline={306 Carmody Rd}, 
   city={St Lucia},
   postcode={4067}, 
@@ -168,12 +154,13 @@
 
 
 \author{Klara Verbyla}
-\affiliation{organization={Agriculture \& Food, CSIRO},%Department and Organization
-  addressline={2 - 40 Clunies Ross Street}, 
-  city={Acton},
-  postcode={2601}, 
-  state={ACT},
-  country={Australia}}
+\affiliation{organization={The Center for Aquaculture Technologies},%Department and Organization
+  addressline={8445 Camino Santa Fe, Suite 104}, 
+  city={San Diego},
+  postcode={92121}, 
+  state={California},
+  country={USA}}
+
 
 
 %% Abstract
@@ -294,7 +281,7 @@ Epistatic interactions \sep  Random Forests \sep SNP data
 %\theoremstyle{thmstylethree}%
 %\newtheorem{definition}{Definition}
 
-%\usepackage{caption}
+%\usepackage{capton}
 %\usepackage{natbib}
 %\usepackage[backend=biber,style=apa,defernumbers=true]{biblatex}
 %\addbibresource{./manuscript.bib}
@@ -551,17 +538,16 @@ $\mu=50.$ It would appear that these examples all have $\lambda$ and $\mu$ (the 
 greater separation than we have in the Rheumatoid data. So we may have a more inteactable problem here.
 
 Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forests with more
-trees and we will observe more counts.
-There is a trade-off here and as we are sampling a space with typically more than $10^{9}$ possible interactions,
-we have to increase the number of trees a lot to get a meaningful difference in the mean of the contaminating
-distribution. Because of this we resort to a threshholding stratey that is both computationally easier and controls the FDR rate by testing
-each variable.
-
+trees and we will observe more counts.  There is a trade-off here and as we are sampling a space with typically more
+than $10^{9}$ possible interactions, we have to increase the number of trees a lot to get a meaningful difference in the
+mean of the contaminating distribution. We have found the thresholding to give a larger set of significant variables
+than the empirical Bayes method. However it controls the FDR rate by testing each variable and computationally easier.
 
 \subsection{threshholding the data}
 In this case we have followed a simple strategy:
 \begin{itemize}
-\item threshold the observed count data. We do this a number of ways to do this (list them) and then take the median. In
+\item threshold the observed count data. We do this a number of ways to do this (breakpoints in the distribution,
+  entropy tests and otehrs. See the supplementary informaton) and then take the median. In
   the case of the Rheumatoid data, this was 2 which gave us 222 interactions;
 \item test each interaction with a linear model (see below).
 \end{itemize}
@@ -1147,8 +1133,7 @@ expression on chromosome 6p21 and thus modulate T-cell mediated immune activatio
 
 Notably, multiple genome wide association studies (GWAS) identified a subset of the interactive SNPs as associated with
 various autoimmune diseases i.e., rs9273363, rheumatoid arthritis; type 1 diabetes; rs6457617, multiple sclerosis,
-Graves disease, systemic sclerosis; rs615672, rheumatoid arthritis ("UCSC Genome Browser Home").
-\marginpar{is UCSC Genome Browser Home a reference?}
+Graves disease, systemic sclerosis; rs615672, rheumatoid arthritis \cite[]{UCSC.2022}.
 The results fromusing the proposed method on the human rheumatoid arthritis data revealed a number of promising results supporting the
 potential value of the proposed method for identifying epistatic interactions in case control data including the
 ability to find positive and negative cis-acting interactions.
@@ -1375,7 +1360,7 @@ H.A., R.D and K.V. conceived the experiment(s), H.A. conducted
 the experiment(s), H.A., R.D. and R.T. analysed the results.  H.A., R.D and K.V. and R.T.  wrote and reviewed the manuscript.
 
 \section{Acknowledgements}
-The authors thank the anonymous reviewers for their valuable suggestions. This work is supported by CSIRO MLAI Future
+This work is supported by CSIRO MLAI Future
 Science Platform. This study makes use of data generated by the Wellcome Trust Case Control Consortium. A full list of
 the investigators who contributed to the generation of the data is available from www.wtccc.org.uk. Funding for the
 project was provided by the Wellcome Trust under award 076113.
@@ -1388,7 +1373,7 @@ project was provided by the Wellcome Trust under award 076113.
 %\bibliography{reference}
 
 
-\bibliographystyle{elsarticle-harv}
+\bibliographystyle{elsarticle-num}
 \bibliography{./manuscript.bib}
 
 

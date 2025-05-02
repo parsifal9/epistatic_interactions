@@ -1,0 +1,2458 @@
+---
+title: "The Rheumatoid Arthritis data  \nSupplementary File for "Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests"
+author: "Hawlader Al-Mamun,  Rob Dunne"
+date: "Wednesday, September 25, 2024"
+output: 
+    bookdown::pdf_document2:
+     toc: true
+     toc_depth: 3
+     fig_caption: yes
+     citation_package: biblatex
+bibliography: 
+header-includes:
+  \usepackage{dcolumn}
+  \usepackage{placeins}
+  \usepackage{float}
+  \usepackage{biblatex}
+  \usepackage{caption}
+  \usepackage{subcaption}
+---
+
+We work through the analysis of Rheumatoid Arthritis data presented in "Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests"
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.height=6, dpi=300,echo = FALSE)
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
+ 
+```
+\clearpage
+# Notes
+
+- is the data available? What about the preprocessing? Can we include this in a vignette?
+- dim(dt)   4798 94485 but the paper says 94,486
+- looked at variable importance. Variables that have more splits as they are important are likely to have more consecutive splits. Should we take this into account?
+- I removed splits from AllInteractions where the split is on the same variable again. This does not matter for the regression method but might for other methods (Empirical Bayes)
+- There is a hotspot in chromosome 6. Did we know about this? Does it get dropped when you filter on LD
+- we are looking at the interaction as the product of the two SNP variables, so it takes the values $\{0,1,2,4\}$. so we are threating it as a
+  regression but it does not take the value 3.  If we treat them as factors we get levels(d1:d2) "0:0" "0:1" "0:2" "1:0" "1:1" "1:2" "2:0" "2:1" "2:2"
+  9 levels. Which is a more reasonable model? 
+- I look at using the **empiricalzip** (Empirical Bayes zero inflated Poisson) package to model the interaction counts and set a significance
+level. The agreement with the regression testing is not great.
+- we have the file "Cleaned_CaseControl_RAauto_pruned200kb_.3.bim"
+
+
+
+
+# load data
+
+- 4798 samples
+- 94485 SNPs
+
+
+```{r, echo=FALSE, eval=FALSE}
+library(lmtest)
+library(ranger)
+#library(RCy3)
+
+#Noise <- 0.1
+numIte  <-  1
+t <- numIte
+ntree <- 1000
+
+dirOut  <-  paste0("Results")
+if(!dir.exists(dirOut)){
+  dir.create(dirOut)
+}
+#dirOut  <-  paste0("Results/pruned200K.3r2_geno_Missing_Averaged")
+dt  <-  readRDS("pruned200K.3r2_geno_Missing_Averaged.rds")
+pheno <- read.table("Cleaned_CaseControl_RAauto.fam",header=F)
+pheno$ID <- paste0(pheno$V1,"_",pheno$V2)
+all.equal(row.names(dt),pheno$ID)
+dt <- data.frame(pheno=as.factor(pheno$V6),dt)
+dim(dt) #[1]  4798 94485
+
+#94,486 SNPs (4.46 billion possible pairwise interaction tests) and 4,798 individuals.
+
+dt$pheno <- as.factor(dt$pheno)
+#dt <- dt[which(dt$treatment=="short"),-2]
+
+# quick load of results etc
+dirOut  <-  paste0("Results")
+load(file="Results/var_importance_gini.Rdata")
+load(file=paste0(dirOut,"/All_Interactions.Rdata"))
+load(file="./Results/interaction_snps_counts_fixed.Rdata")
+load(file=paste0(dirOut,"/lm_results_fixed.Rdata"))
+
+```
+
+# Fit a Random Forest
+
+```{r, echo=FALSE, eval=FALSE}
+##Number of trees:                  1000 
+#set.seed(sample(1:1000,1))
+set.seed(100)
+#system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = ntree, mtry = ncol(dt)/3, importance = 'impurity'))
+#     user    system   elapsed 
+#89141.264     3.601  1568.711 
+#save(model.rf, file="model.rf.Rdata") 
+
+##Number of trees:                  5000 
+#system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = 5000, mtry = ncol(dt)/3))
+# user     system    elapsed 
+#443201.110      8.132   7185.540 
+#Number of trees:                  5000 
+#Sample size:                      4798 
+#Number of independent variables:  94484 
+#Mtry:                             31495 
+#Target node size:                 1 
+#Variable importance mode:         none 
+#Splitrule:                        gini 
+#OOB prediction error:             33.18 % 
+#save(model.rf, file="model.rf_temp2.Rdata")
+
+##Number of trees:   1000, importance = 'impurity'
+set.seed(100)
+#petrichor-i1: salloc -A OD-217714 --mem=100GB --nodes=1 --ntasks-per-node=64    -J interactive -t 6:00:00 srun --pty /bin/bash -l
+#etrichor-i1: sacct -j 60755241  --format="jobid,ntasks,Elapsed,TotalCPU,MaxRSS,AveVMSize,MaxVMSize"
+#JobID          NTasks    Elapsed   TotalCPU     MaxRSS  AveVMSize  MaxVMSize 
+#60755241                00:13:56  00:06.682                                  
+#60755241.ex+        1   00:13:56  00:00.001       995K    124080K    124080K 
+#60755241.0         64   00:13:53  00:06.680 104545713K 3274946112 192422568K 
+
+system.time(model.rf <- ranger(dependent.variable.name="pheno",data = dt,num.trees = ntree, mtry = ncol(dt)/3, importance = 'impurity'))
+#     user    system   elapsed 
+#89397.171     4.807  1591.941 
+#save(model.rf, file="model.rf_temp3.Rdata")
+var_importance <- model.rf$variable.importance
+head(rev(sort(var_importance)))
+t2 <-count_variables(model.rf)
+names(t2) <-names(var_importance)
+
+#save(var_importance , t2, file="Results/var_importance_gini.Rdata")
+#load(file="Results/var_importance_gini.Rdata")
+
+```
+
+# variable importance
+
+we use the pacakge RFlocalfdr to give an empirical Bayes estimate of the number of significant SNPs.
+It returns 74 SNPs as significant. See figure \@ref(fig:RFlocalfdr). Note that this is just settng a significance level. These
+are the 74 SNPs with maximum variable importance from the random forest fit.
+
+```{r RFlocalfdr, eval=TRUE, echo=FALSE, fig.cap='RFlocalfdr',  fig.align = 'center', out.width = '50%'}
+knitr::include_graphics("./script3/RFlocalfdr.png")
+
+```
+
+```{R, echo=FALSE, eval=FALSE}
+library(RFlocalfdr)
+vignette(package="RFlocalfdr")
+#no vignettes found -- why is this?
+imp<-log(var_importance)  #6275 var_importance vales =0 
+plot(density(imp),xlab="log importances",main="")
+
+cutoffs <- c(0,1,2,3)
+res.con<- determine_cutoff(imp,t2 ,cutoff=cutoffs,plot=c(0,1,2,3))
+plot(cutoffs,res.con[,3],pch=15,col="red",cex=1.5,ylab="max(abs(y - t1))")
+
+cutoffs <- c(4,5,6)
+res.con2 <- determine_cutoff(imp,t2 ,cutoff=cutoffs,plot=c(4,5,6))
+plot(c(0,1,2,3,4,5,6),c(res.con[,3],res.con2[,3]),pch=15,col="red",cex=1.5,ylab="max(abs(y - t1))")
+
+temp<-imp[t2 > 3]
+temp <- temp - min(temp) + .Machine$double.eps
+qq <- plotQ(temp,debug.flag = 1)
+ppp<-run.it.importances(qq,temp,debug.flag = 0)
+
+png("./script3/RFlocalfdr.png")
+aa<-significant.genes(ppp,temp,cutoff=0.05,debug.flag=0,do.plot=TRUE,use_95_q=TRUE)
+dev.off()
+length(aa$probabilities) # 74
+
+aa<-significant.genes(ppp,temp,cutoff=0.05,debug.flag=0,do.plot=TRUE,use_95_q=FALSE)
+length(aa$probabilities) #  74
+
+
+length(intersect(names(aa$probabilities) ,names(rev(sort(var_importance)))[1:74])) #74
+#but why is the order different
+
+var_importance <- var_importance[match(names(aa$probabilities),names(var_importance))]
+#now in the same order as aa$probabilities
+cbind(aa$probabilities,var_importance)
+
+```
+
+
+# look at some SNP counts
+
+- this is the counts of how often a variable was used for a split in RF
+- the varaible importance has a very high correlation with this
+- There is a hotspot in chromosome 6. See figure \@ref(fig:hotspot)
+
+```{r hotspot, eval=TRUE, echo=FALSE, fig.cap='There is a hotspot in chromosome 6',  fig.align = 'center', out.width = '50%'}
+knitr::include_graphics("./figs/hotspot.png")
+
+```
+
+```{R, echo=FALSE, eval=FALSE}
+t2[grep("X6_32471505",names(t2))] #993 
+t2[grep("X6_32771829",names(t2))] # 1532
+sum(t2) #[1] 295310  all splits
+
+# how are the SNP numbers organized 
+plot(as.numeric(gsub("X[1-9]*\\_([0-9]*)","\\1", names(t2))))
+# it looks like they are sequential within chromosome 
+
+cols<- as.numeric((gsub("X([0-9]*)\\_[0-9]*","\\1",  names(t2))))
+
+#png("./figs/hotspot.png")
+# Set up the main plot without x-axis ticks and labels
+par(mar=c(5, 4, 4, 2) + 0.1)  # Adjust margins
+plot(t2, col=cols, xaxt='n', main="SNP Counts Across Genome",xlab="counts")
+
+# Add an inset plot for chromosome 6
+# Define the plotting region for the inset
+par(fig=c(0.5, 0.9, 0.5, 0.9), new=TRUE, mar=c(2, 2, 1, 1))  # Adjust margins for inset
+
+# Extract data for chromosome 6
+chrom6_data <- t2[cols == 6]
+
+# Plot the inset
+plot(chrom6_data[1350:1500], col=6, main="part of Chromosome 6", xaxt='n', yaxt='n')
+#dev.off()
+# there is a hotspot in this region!
+
+t2[which(t2> 800)]
+#X6_32471505 X6_32771829 
+#        993        1532
+
+```
+
+# count the interactions in actual data
+
+```{R, echo=FALSE,eval=FALSE}
+#t2 <- system.time({
+  
+  
+  # countMatrix <- matrix(0,ncol = ncol(dt)-1,nrow=ncol(dt)-1)
+  # row.names(countMatrix) <- colnames(dt)[-1]
+  # colnames(countMatrix) <- colnames(dt)[-1]
+  # 
+  
+  for(i in 1:ntree){
+    #tree2 <- getTree(model.rf2,i,T)
+    tree <- treeInfo(model.rf,i)
+    #tree <- treeInfo(model.n,5)
+    
+    LeftinteractionTable  <-  data.frame(matrix(0,nrow = nrow(tree),ncol=2))
+    LeftinteractionTable[,1] <- tree$splitvarName
+    
+    for(l in 1:nrow(tree)){
+      if(is.na(tree[l,5])==F){
+        leftChildID = tree[l,2]
+        leftChildIndex = which(tree$nodeID==leftChildID)
+        LeftinteractionTable[l,2]=tree$splitvarName[leftChildIndex]
+      }
+    }
+    RightinteractionTable = data.frame(matrix(0,nrow = nrow(tree),ncol=2))
+    RightinteractionTable[,1]=tree$splitvarName
+    
+    for(l in 1:nrow(tree)){
+      if(is.na(tree[l,5])==F){
+        
+        rightChildID = tree[l,3]
+        rightChildIndex = which(tree$nodeID==rightChildID)
+        RightinteractionTable[l,2]=tree$splitvarName[rightChildIndex]
+      }
+    }
+    
+    
+    LeftinteractionTable=na.omit(LeftinteractionTable)
+    RightinteractionTable=na.omit(RightinteractionTable)
+    
+    allInteractions = rbind(LeftinteractionTable,RightinteractionTable)
+    allInteractions[,1] = as.character(allInteractions[,1])
+    allInteractions[,2] = as.character(allInteractions[,2])
+    
+    if(i ==1){
+      index=which(allInteractions$X1> allInteractions$X2)
+      tmp=allInteractions$X2
+      tmp[index]=allInteractions$X1[index]
+      allInteractions$X1[index]= allInteractions$X2[index]
+      allInteractions$X2= tmp
+      All_Interactions=allInteractions
+      #allInteractions$X1_X2=paste0(allInteractions$X1," ",allInteractions$X2)
+      #countTable=table(allInteractions$X1_X2)
+      #All_count_dtf=data.frame(countTable)
+    }else{
+      index=which(allInteractions$X1> allInteractions$X2)
+      tmp=allInteractions$X2
+      tmp[index]=allInteractions$X1[index]
+      allInteractions$X1[index]= allInteractions$X2[index]
+      allInteractions$X2= tmp
+      All_Interactions=rbind(All_Interactions,allInteractions)
+      
+    }
+  }
+
+#saveRDS(All_Interactions,paste0(dirOut,"/All_Interactions.rds"))
+#All_Interactions <- readRDS(paste0(dirOut,"/All_Interactions.rds"))
+#save(All_Interactions,file=paste0(dirOut,"/All_Interactions.Rdata"))
+#dim(All_Interactions) #[1] 294310      2
+
+```
+```{R, echo=FALSE, eval=FALSE}
+# just some checks on how  All_Interactions is organized. 
+head(All_Interactions)
+#            X1           X2      294310      2
+#1  X6_32471505  X6_32771829
+#2 X21_44075267  X6_32471505
+#3 X14_84754343  X4_67191986
+
+
+#X6_32471505  X6_32771829 are often consecutive splits. We count occurrences
+
+length(grep("X6_32471505", All_Interactions[grep("X6_32771829",All_Interactions$X1),2])) #0
+length(grep("X6_32471505", All_Interactions[grep("X6_32771829",All_Interactions$X2),1])) #466
+
+# and for some random selected splits
+for (i in  sample(294310,100) ){
+    a1<- length(grep(All_Interactions$X1[i], All_Interactions[grep(All_Interactions$X2[i],All_Interactions$X1),2])) #0
+    a2<- length(grep(All_Interactions$X2[i], All_Interactions[grep(All_Interactions$X1[i],All_Interactions$X1),2])) #0
+    cat(a1, a2, "\n", sep=" ")
+}
+#so the splits are lexigraphically ordered i.e. where "X6_32771829 X6_32471505" occurs, it is recorded as  "X6_32471505  X6_32771829" 
+#never the other way around. This makes things easier to track
+
+```   
+
+## expected numbers of consecutive splits 
+
+- if the consecutive splits were uniformly random, then variables with a lot of splits would have a higher chance of occuring together
+- consider X6_32471505 and  X6_32771829. If random these would have  50 consecutive splits, they have 466
+
+```{R, echo=FALSE, eval=FALSE}
+
+#so how often would we expect the consecutive splits "X6_32471505 X6_32771829"
+#(prob X6_32471505)*prob( X6_32771829 )* (total number of split pairs)
+#splits on X6_32771829 1532 times, mtry is 31495 , total numer of splits 295310, 94484 varaibles
+(31495/ 94484 ) *(993 / 31495)* (31495/ 94484 ) *(1532 / 31495)*294120
+#so 50.12057 versus 466
+
+#what about  X6_32481210 X6_32682149
+#281391  X6_32481210 X6_32682149    5
+t2[grep("X6_32481210",names(t2))] # 121  
+t2[grep("X6_32682149",names(t2))] #  277 
+(31495/ 94484 ) *(121  / 31495)* (31495/ 94484 ) *( 277  / 31495)*294120
+# so 1.1 versus 5
+
+```
+
+
+## remove "self splits"
+
+1. how often are there self-splits i.e. consecutive splits on the same variable
+
+  - 190 are self-splits (so not many). These are all due to two transcripts "X6_32771829",  "X6_32471505" which are 1 and 2 in importance
+  - we  remove these from **All_Interactions**
+  - save **interaction_snps_counts_fixed.Rdata**
+
+b
+
+```{R, echo=FALSE, eval=FALSE}
+
+length(which(All_Interactions$X1==All_Interactions$X2))
+# of 294310 splits, 190 are self-splits
+
+unique(All_Interactions$X1[which(All_Interactions$X1==All_Interactions$X2)])
+# "X6_32771829" "X6_32471505" 2 splits these are 1 and 2 in importance
+
+imp <- names(rev(sort(var_importance)))
+grep("X6_32771829",imp)
+head(match( imp, All_Interactions$X1))
+#  [1]     11      1    882   2916    772   2623   2337    290   1180  61812
+# [11]   3524   5620   3520   7688   9321   9917    291   1468   1074   6360
+
+All_Interactions <- All_Interactions[-c(which(All_Interactions$X1==All_Interactions$X2)),]  #this is where we drop the self splits
+dim(All_Interactions) #[1] 294120      2
+tt<- table(c(All_Interactions$X1,All_Interactions$X2))
+tt<-rev(sort(tt))
+plot(1:74,match(imp,names(tt))[1:74])
+abline(0,1)
+# this proves nothing. Counting the number of times a variable is in a split is a reasonable surrogate for importance
+
+interaction_snps <- paste0(All_Interactions$X1," ",All_Interactions$X2)
+interaction_snps_counts <- table(interaction_snps)
+interaction_snps_counts <- data.frame(interaction_snps_counts)
+interaction_snps_counts <- interaction_snps_counts[order(interaction_snps_counts$Freq,decreasing = T),]
+head(interaction_snps_counts )
+#              interaction_snps Freq   #most are 1
+#              interaction_snps Freq
+#281122 X6_32471505 X6_32771829  466
+#281468 X6_32682149 X6_32771829  144
+#280884 X6_32222493 X6_32771829  113
+
+
+#was                                     before we dropped the repeated splits
+#281123 X6_32471505 X6_32771829  466
+#281469 X6_32682149 X6_32771829  144
+#281616 X6_32771829 X6_32771829  128
+# see the repeated split on X6_32771829 
+
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(imp[i],interaction_snps_counts$interaction_snps[1:640]))
+    }
+aa
+# [1] 301 154  43  15  15  19  16  17  13   9   7   7   6   9   8   3   6   4   7
+#[20]   3   5   5   4   3   4   4   2   2   2   3   3   3   3   4   3   2   3   4
+#[39]   4   1   3   2   2   1   1   4   1   2   1   2   2   3   1   4   1   3   2
+#[58]   1   2   3   0   1   1   2   2   3   3   1   0   1   1   1   0   0
+
+sum(interaction_snps_counts$Freq) # 294120
+
+#saveRDS(interaction_snps_counts,paste0(dirOut,"/interaction_snps_counts_fixed.rds"))
+#interaction_snps_counts <- readRDS("./Results/interaction_snps_counts_fixed.rds")
+#save(interaction_snps_counts, file="./Results/interaction_snps_counts_fixed.Rdata")
+#load(file="./Results/interaction_snps_counts_fixed.Rdata")
+
+
+
+```
+
+
+# run linear models 
+
+- we consider all interaction_snps where the frequency is greater than 2. That is 640 interactions 
+- we fit generalized linear models with an interaction term and record the term and the $p$-value
+- we fit models treating the SNP levels as factors, we fit a models with and witout the interaction term and do a likelihood ratio test
+- we have Bonferrroni, and FDR adjusted p-values for glm regression with numeric SNP and FDR adjusted p-values for LRT on factor interactions
+- the resulting data frame contains
+   
+   - interaction_snps  -- the interaction under consideration e.g. "X6_32308125 X6_32535726"
+   - Freq              -- the frequency of that interaction 
+   - SNP1_effect       -- Estimates
+   - SNP1_Pvalue       -- Pr(>|z|)
+   - SNP2_effect       -- Estimates
+   - SNP2_Pvalue       -- Pr(>|z|)
+   - int_effect   interaction term
+   - int_Pvalue
+   - correlations  cor(dt[,ind1],dt[,ind2])
+   - Ch2          lrtest(nested.model, s2) d1 d2 factors  Pr(>Chisq)
+   - splits_SNP1   number of times this varaible is the split varaible 
+   - splits_SNP2   number of times this varaible is the split varaible 
+   - adj_p_value_bonferrroni correction of int_Pvalue
+   - adj_p_value_fdr          fdr correction of int_Pvalue
+   - adj_p_value_Ch2          fdr correction of Ch2  
+
+so
+
+- Bonferrroni on numeric SNP regression picks 21
+- fdr on numeric SNP regression picks 88 (containing the 21 selected  by Bonferrroni )
+- $\chi^2$ test on SNP factor variables picks  121 (containing 68 of the 88 selected by fdr)
+
+
+```{R, echo=FALSE, eval=FALSE}
+
+index <- which(interaction_snps_counts$Freq>=2)  #640
+
+lm_results  <-  data.frame(interaction_snps_counts[index,],SNP1_effect=0,SNP1_Pvalue=1,SNP2_effect=0,SNP2_Pvalue=1,int_effect=0,int_Pvalue=1,Ch2=1)
+dim(lm_results)
+lm_results$correlations <- 0
+selectedSNPs <- "pheno"
+if(class(dt$pheno)=='factor'){
+  for(l in 1:nrow(lm_results)){
+    SNP1 <- strsplit(as.character(lm_results[l,1])," ")[[1]][1]
+    SNP2 <- strsplit(as.character(lm_results[l,1])," ")[[1]][2]
+    selectedSNPs <- union(selectedSNPs,SNP1)
+    selectedSNPs <- union(selectedSNPs,SNP2)
+    ind1  <-  which(colnames(dt)==SNP1)
+    ind2  <-  which(colnames(dt)==SNP2)
+    s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))$coeff
+#l<-31 
+#                        Estimate Std. Error    z value     Pr(>|z|)
+#(Intercept)            0.4202587 0.06693247   6.278846 3.410951e-10
+#dt[, ind1]            -0.2898685 0.06767282  -4.283382 1.840739e-05
+#dt[, ind2]            -1.0043861 0.07960751 -12.616726 1.707751e-36
+#dt[, ind1]:dt[, ind2]  0.2321571 0.06325044   3.670443 2.421308e-04
+   lm_results$correlations[l] <- cor(dt[,ind1],dt[,ind2])
+    #same as 
+    #s2  <-  summary(glm(dt$pheno ~ dt[,ind1] + dt[,ind2] + dt[,ind1]:dt[,ind2],family = binomial(link="logit")))
+    #s2$coeff
+
+    #as factors
+    d1<- factor(dt[,ind1])
+    d2<- factor(dt[,ind2])
+    
+    s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+    nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+    #anova(nested.model, s2, test="LRT") #or
+    aa<- lrtest(nested.model, s2)
+#Likelihood ratio test
+#
+#Model 1: dt$pheno ~ d1 + d2
+#Model 2: dt$pheno ~ d1 + d2 + d2:d2
+#  #Df  LogLik Df Chisq Pr(>Chisq)
+#1   5 -2985.5                    
+#2   5 -2985.5  0     0          1
+# 
+#H0: You should use the nested model.
+#Ha: You should use the complex model.
+#Pr(>Chisq)=1  so use the simple model
+
+     
+    
+    lm_results$splits_SNP1  <- t2[SNP1]
+    lm_results$splits_SNP2  <- t2[SNP2]
+    lm_results$Ch2[l] <- aa$"Pr(>Chisq)"[2]
+    lm_results$SNP1_effect[l]  <-  s[2,1]
+    lm_results$SNP1_Pvalue[l]  <-  s[2,4]
+    lm_results$SNP2_effect[l]  <-  s[3,1]
+    lm_results$SNP2_Pvalue[l]  <-  s[3,4]
+    lm_results$int_effect[l]  <-  s[4,1]
+    lm_results$int_Pvalue[l]  <-  s[4,4]
+    
+    
+  }
+}
+
+
+##############
+names(dt)[grep("X6_3",names(dt))]
+SNP1 #[1] "X6_32912392" #just the last ones to come out of  the calculation above
+SNP2 #[1] "X7_25326942"
+dim(All_Interactions[grep(SNP2,All_Interactions$X1),]) #2 2
+dim(All_Interactions[grep(SNP2,All_Interactions$X2),]) #35  2
+#interaction_snps_counts[grep("X7_25326942", interaction_snps_counts$interaction_snps),]
+aa<- interaction_snps_counts[grep("X6_32912392", interaction_snps_counts$interaction_snps),]
+aa[grep("X7_25326942", aa$interaction_snps),]
+#              interaction_snps Freq
+#282088 X6_32912392 X7_25326942    2
+
+grep("X6_32912392", lm_results[,1])
+lm_results[ 640,]
+#             interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect SNP2_Pvalue int_effect int_Pvalue       Ch2 correlations splits_SNP1 splits_SNP2
+#282086 X6_32912392 X7_25326942    2  -0.3853136 2.289531e-12 -0.02027243   0.7972829  0.1774552 0.04946914 0.1475998  0.004923941          18          14
+
+ind1 <- grep("X6_32912392",names(dt))
+ind2 <- grep("X7_25326942",names(dt))
+
+s  <-  summary(glm(dt$pheno ~ dt[, ind1]*dt[, ind2],family = binomial(link="logit")))$coeff
+#                                                                             Estimate Std. Error    z value     Pr(>|z|)
+#(Intercept)                                                               -0.25152373 0.04720520 -5.3283057 9.913319e-08
+#dt[, grep("X6_32912392", names(dt))]                                      -0.38531361 0.05492235 -7.0156068 2.289531e-12
+#dt[, grep("X7_25326942", names(dt))]                                      -0.02027243 0.07892247 -0.2568651 7.972829e-01
+#dt[, grep("X6_32912392", names(dt))]:dt[, grep("X7_25326942", names(dt))]  0.17745517 0.09032977  1.9645259 4.946914e-02
+
+d1<- factor(dt[,ind1])
+d2<- factor(dt[,ind2])
+s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+aa<- lrtest(nested.model, s2)
+#Likelihood ratio test
+#Model 1: dt$pheno ~ d1 + d2
+#Model 2: dt$pheno ~ d1 + d2 + d1:d2
+#  #Df  LogLik Df  Chisq Pr(>Chisq)
+#1   5 -3174.1                     
+#2   9 -3170.7  4 6.7867     0.1476
+#all looks right
+
+##########
+lm_results <- lm_results[order(lm_results$int_Pvalue, decreasing = F),]
+lm_results$adj_p_value_bonferrroni <- lm_results$int_Pvalue*nrow(lm_results) # a bonferrroni correction?
+sum(lm_results$adj_p_value_bonferrroni < 0.05) #[1] 21
+
+lm_results$adj_p_value_fdr <- p.adjust(lm_results$int_Pvalue, method = "fdr")
+sum(lm_results$adj_p_value_fdr < 0.05) #[1] 88
+
+lm_results$adj_p_value_Ch2 <- p.adjust(lm_results$Ch2 , method = "fdr")
+sum(lm_results$adj_p_value_Ch2 < 0.05) #[1] 121
+length(intersect( which(lm_results$adj_p_value_fdr < 0.05), which(lm_results$adj_p_value_Ch2 < 0.05)))# [1] 68
+#save(lm_results, file=paste0(dirOut,"/lm_results_fixed.Rdata"))# fixed in the sense that the self-split pairs have been removed
+#load(file=paste0(dirOut,"/lm_results_fixed.Rdata"))
+
+names(lm_results)
+# [1] "interaction_snps"        "Freq"                    "SNP1_effect"             "SNP1_Pvalue"             "SNP2_effect"             "SNP2_Pvalue"             "int_effect"             
+# [8] "int_Pvalue"              "Ch2"                     "correlations"            "splits_SNP1"             "splits_SNP2"             "adj_p_value_bonferrroni" "adj_p_value_fdr"        
+#[15] "adj_p_value_Ch2"        
+lm_results[1:2,]
+#              interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect   int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2 adj_p_value_bonferrroni
+#280954 X6_32308125 X6_32535726   14  -1.0932552 5.783667e-39  -0.7248879 5.844399e-39  0.6083855 3.488304e-16 1.303556e-15  -0.14839455          18          14            2.232514e-13
+#280951 X6_32308125 X6_32423632    3  -0.9145729 2.243391e-31  -0.4717926 3.387561e-16  0.5723224 5.161507e-14 4.721907e-12   0.07261602          18          14            3.303364e-11
+#       adj_p_value_fdr adj_p_value_Ch2
+#280954    2.232514e-13    8.342758e-13
+#280951    1.651682e-11    1.007340e-09
+
+#so
+#
+#- Bonferrroni on numeric SNP regression picks 21
+#- fdr on numeric SNP regression picks 88
+#- $\chi^2$ test on SNP factor variables picks  121
+
+
+```
+
+
+```{R, echo=FALSE, eval=FALSE}
+# some plots of the  p-values for the different methods
+plot(lm_results$int_Pvalue,pch=16)
+points(lm_results$adj_p_value_fdr, col="red",pch=16)
+points(lm_results$adj_p_value_bonferrroni , col="green",pch=16)
+points(lm_results$adj_p_value_Ch2 , col="blue",pch=16)
+abline(h=0.05)
+legend(200,1,c("p-values, ordered", "fdr corrected", "Bonferroni corrected", "Chi2 p-values" ),pch=16,col=c("black", "red", "green","blue"))
+#some concordance between the regression p-values and the Chi^2 p-values
+#Bonferrroni finds 21, "fdr" finds 88 and \Chi^2 with fdr finds 121
+length(intersect(which(lm_results$adj_p_value_Ch2  < 0.05), which(lm_results$adj_p_value_fdr  < 0.05))) # 68
+
+
+lm_results.temp <- lm_results[order(lm_results$adj_p_value_Ch2, decreasing = F),]
+plot(lm_results.temp$int_Pvalue, col="black")
+points(lm_results.temp$adj_p_value_fdr, col="red")
+points(lm_results.temp$adj_p_value_bonferrroni , col="green")
+points(lm_results.temp$adj_p_value_Ch2 , col="blue")
+abline(h=0.05)
+#same thing
+
+lm_results.temp[22,]
+ #              interaction_snps Freq SNP1_effect SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect int_Pvalue          Ch2 correlations splits_SNP1 splits_SNP2
+#180240 X1_161191571 X6_32771829    2  -0.0257612   0.6986353  -0.8204181 3.832185e-29 0.00295658  0.9636916 4.178291e-05  0.001961207          18          14
+#       adj_p_value_bonferrroni adj_p_value_fdr adj_p_value_Ch2
+#180240                616.7626       0.9821061     0.001215503
+
+ind1  <-  which(colnames(dt)=="X1_161191571")
+ind2  <-  which(colnames(dt)=="X6_32771829")
+s  <-  summary(glm(dt$pheno ~ dt[,ind1]*dt[,ind2],family = binomial(link="logit")))
+#as factors
+d1<- factor(dt[,ind1])
+d2<- factor(dt[,ind2])
+s2  <-  glm(dt$pheno ~ d1 +d2 +d1:d2,family = binomial(link="logit"))
+nested.model <- glm(dt$pheno ~ d1+d2, family= binomial(link="logit"))
+aa <- lrtest(nested.model, s2)
+#Likelihood ratio test  aa$"Pr(>Chisq)" 4.178291e-05
+# so the adj_p_value_fdr  is not significant but the adj_p_value_Ch2 is
+
+options(width=195)
+lm_results[1:21,]
+
+
+# the top imp SNPs (selected by RFlocafdr) and how often they appear in the top interactions (glm, selected by FDR)
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
+    }
+# proving what? The SNPs selected by RFlocafdr are not selected as interactions
+
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(names(var_importance)[i] ,lm_results$interaction_snps[1:88]))
+    }
+# proving what? The SNPs selected by RFlocafdr are not selected as interactions
+
+
+for ( i in 1:74){
+    aa[i] <- length(grep(imp[i],lm_results$interaction_snps[1:88]))
+    }
+aa
+#[1] 34 22 11  3  6  4  6  8  4  2  3  2  3  0  3  2  2  0  2  1  0  0  0  1  3
+#[26]  2  0  1  0  0  1  0  1  1  0  0  0  1  0  0  0  0  1  0  0  0  0  0  1  0
+#[51]  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0
+
+```
+
+# data set up
+
+```{R, echo=FALSE, eval=FALSE}
+
+# Assuming your count data is in a vector 'x'
+x <- interaction_snps_counts$Freq
+
+dim(interaction_snps_counts)[1] #[1] 291142
+sum(interaction_snps_counts$Freq) # 294120
+
+94485*(94485 -1)/2 - 291142
+x2<-  c(rep(0,4463369228),x)
+
+#table(x2) long run time!
+#    0         1         2      3      4       5      6      7      8      9     10     11     12     13     14     15     16     17     18     22     23     25     26     27     31     34     41  51     52     54     62     63     64     78     79     90    100    113    144    466 
+#4463369228  290502    418     89     29     22     14     11      7      5      4      3      3      3      4     1      1      1      1      2      1      1      1      2      1      1      1   1      1      1      1      2      1      1      1      1      1      1      1      1 
+
+
+# First, prepare your data
+counts <- as.numeric(names(table(x)))  # Unique count values (1, 2, 3, ...)
+freqs <- as.numeric(table(x))          # Frequencies of each count
+n_zeros <- 4463369228                   # Number of zeros
+
+
+# Recreate the data based on your table x2
+counts0 <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,15,  16,  17,  18,  22,  23,  25,  26,  27,  31,  34,  41, 51,  52,  54,  62,  63,  64,  78,  79,  90, 100, 113, 144, 466) 
+freqs0 <- c(4463369228, 290502, 418, 89, 29, 22, 14, 11, 7, 5, 4, 3, 3, 3, 4, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,   1,   1,   1,   2,   1,   1,   1,   1,   1,   1,   1,   1)
+# Recreate the data based on your table x
+counts <- c( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,15,  16,  17,  18,  22,  23,  25,  26,  27,  31,  34,  41, 51,  52,  54,  62,  63,  64,  78,  79,  90, 100, 113, 144, 466) 
+freqs <- c( 290502, 418, 89, 29, 22, 14, 11, 7, 5, 4, 3, 3, 3, 4, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,   1,   1,   1,   2,   1,   1,   1,   1,   1,   1,   1,   1)
+
+# Create a representative sample of this distribution (for computational efficiency)
+set.seed(123)
+sample_size <- 100000000
+sample_probs <- freqs / sum(freqs)
+x_sample <- sample(counts, size = sample_size, replace = TRUE, prob = sample_probs)
+
+```
+
+# Null distribution
+
+What would the distribution of counts look like if 291142 interactions were assigned randomly?
+Under a random assignment, this follows a binomial distribution that can be approximated by a Poisson distribution with:
+$\lambda= 291,142 / 4,463,565,886 \approx 0.000065$
+
+-  Count = 1: approximately 290,849 pairs
+-  Count = 2: approximately 9.5 pairs
+-  Count $\geq 3$: effectively 0 pairs
+
+The observed data shows:
+
+- Count = 1: 290502  pairs
+-  Count = 2: 418   pairs
+-  Count = 3: 89  pairs
+-  Count $\geq 4$: 133 pairs
+
+
+
+\clearpage
+\FloatBarrier
+
+# empiricalzip
+
+- There are  4463613128 potential interactions. We have non-zero values for 294120, so there are a lot of 0 values.
+- what to do to handle this? 
+- **gpEMAlgorithm** fails -- set which estimates to calculate in the function call
+- better name than **RealDataFDR**, what other data would we be running it on
+- docuement output better
+- "X6_32222493 X6_32771829" see below, how does it have  splits_SNP1=18,  splits_SNP2=14 but Freq=113
+
+   - it doesnt t2["X6_32222493"] =202 t2["X6_32771829"]= 1532 -- lm_result has a problem 
+
+
+
+## some investigations of empiricalzip. 
+```{R, echo=FALSE, eval=FALSE}
+#devtools:::install_github("parsifal9/empiricalzip")
+estimate<-  zigpEMAlgorithm(x2) #works
+estimate<- zipEMAlgorithm(x2) #works
+system.time(estimate<- pEMAlgorithm(x2)) ##works
+estimate<- gpEMAlgorithm(x2) #Error in while (((abs(hold.lambda - lambdaEstimate)) > epsilon) || ((abs(hold.theta -  :   missing value where TRUE/FALSE needed
+
+aa <- my.RealDataFDR(x2, 0.1) #has gpEMAlgorithm commented out, accepts data ratehr than a file
+# Rejection counts
+#       ZIGP ZIP   GP  P         ZIGP ZIP   GP  P        ZIGP  ZIP     GP  P
+#   one stage procedure           two stage             Storey's FDR
+#[1,]   50   82   82   82      57   82  104   82        35    53    53    53
+#[2,]   50   82   82   82      57   82  104   82        35    53    53    53
+
+#[[2]]Parameter estimates using cutoff method C_0
+
+    ## eta: Zero-inflation parameter (proportion of structural zeros)
+    ## lambda: Mean parameter
+    ## theta: Dispersion parameter (NA for models that don't use it)
+    ## pi: Estimated proportion of null hypotheses ($\pi_0$)
+    ## C: The estimated cutoff value (\hat{C}) - positions with counts $\leq$ C are assumed to be from null
+    ## AD: The truncation point (D_N) - positions with counts $\geq$ AD are automatically considered significant
+
+#        eta         lambda    theta      pi          C0   AD
+#[1,] 0.472686094 1.0020464 1.133941e-12 0.9999401    7    8   zigp
+#[2,] 0.001277773 0.3350806           NA 0.9999075    5   14   zip
+#[3,]          NA 0.3346515 0.000000e+00 0.9999072    4    5   gp
+#[4,]          NA 0.3346515           NA 0.9999072    4   14    p
+#
+#[[3]]
+#           [,1]      [,2]         [,3]      [,4] [,5] [,6]
+#[1,] 0.47268609 1.0020464 1.133941e-12 0.9999401    7    8
+#[2,] 0.00128352 0.3350822           NA 0.9999074    4   14
+#[3,]         NA 0.3346515 0.000000e+00 0.9999072    4    5  
+#[4,]         NA 0.3346515           NA 0.9999072    4   14
+
+#empiricalzip  ZIGP one stage procedure
+#empiricalzip pickes the interactions on the Freq, sointeraction_snps_counts[1:50,]
+interaction_snps_counts$interaction_snps[1:50]
+
+sum(freqs[-c(1:7)]) #[1] 68
+sum(freqs[-c(1:8)]) #[1] 57
+sum(freqs[-c(1:9)]) #[1] 50
+
+```
+The ZIGP model selected by epiricalzip has
+
+- $\eta= 0.472686094$      Zero-inflation parameter (proportion of structural zeros)   
+- $\lambda= 1.0020464$    Mean parameter
+- $\theta= 1.133941e-12$    Dispersion parameter (NA for models that don't use it)  
+- $\pi= 0.9999401$       Estimated proportion of null hypotheses
+ 
+See table \@ref(tab:zigp_comparison)
+
+\begin{table}
+\caption{\label{tab:zigp_comparison} Observed vs. Expected Counts Under ZIGP Model selected by mpiricalzip}
+\center
+\begin{tabular}{lrr}
+\hline
+\textbf{Count} & \textbf{Observed} & \textbf{Expected (ZIGP)} \\
+\hline
+0 & 4,463,369,228 & 4,463,369,228 \\
+1 & 290,502 & 290,490 \\
+2 & 418 & 427 \\
+3 & 89 & 85 \\
+4 & 29 & 21 \\
+5 & 22 & 5 \\
+6-10 & 41 & 3 \\
+11-20 & 13 & $<$1 \\
+$>$20 & 22 & $\approx$0 \\
+\hline
+\textbf{Total} & 4,463,660,370 & 4,463,660,370 \\
+\hline
+\end{tabular}
+\label{tab:zigp_comparison}
+\end{table}
+
+
+
+
+```{R, echo=FALSE, eval=FALSE}
+# protein example (move this)
+
+the protein exaple from @gauranEmpiricalNullEstimation2018
+library(empiricalzip)
+data(protein, package="empiricalzip")
+k<-1
+x <- protein[,(k+1)][!is.na(protein[,(k+1)])]
+M <- length(x)
+cf <- 10^(-10)
+count <- c(length(x[which(x==0)]), tabulate(x, nbins = max(x)))
+names(count) <- c(0:max(x))
+aa <- my.RealDataFDR(x, 0.1) #
+##     ZIGP ZIP   GP  P         ZIGP ZIP   GP  P        ZIGP  ZIP     GP  P
+##      one stage procedure      two stage             Storey's FDR
+## [1,]  191  212  212  212      201  212  223  212     200   211   211   211
+## [2,]  143  205  212  212      143  205  229  212     162   204   211   211
+
+## [[2]]
+## #        eta      lambda    theta      pi    C0   AD   
+## [1,] 0.3245463 1.9167862 0.1415783 0.4576160    6    7
+## [2,] 0.2288849 1.0948534        NA 0.3985044    3    6
+## [3,]        NA 0.8082199 0.0000000 0.3944174    3    4
+## [4,]        NA 0.8082199        NA 0.3944174    3    6
+
+## [[3]]
+##           [,1]      [,2]      [,3]      [,4] [,5] [,6]
+## [1,] 0.2251642 2.1452087 0.5741445 0.6141275    4   36
+## [2,] 0.2759650 1.3856234        NA 0.4244176    2    6
+## [3,]        NA 0.7994067 0.0000000 0.3929166    2    3
+## [4,]        NA 0.7994067        NA 0.3929166    2    6
+
+# ZIGP parameters
+eta <- 0.3245463
+lambda <- 1.9167862 
+theta <- 0.1415783
+
+# Generate the plots and analysis
+results <- plot_zigp_comparison(
+  observed_counts = count,
+  eta = eta,
+  lambda = lambda, 
+  theta = theta,
+  max_display = 30,
+  y_min = -15  # Extended y-axis
+)
+
+results$log_scale_tail
+abline(v=6)
+
+plot_normalized_mixture(
+   eta = eta,
+   lambda =  lambda, 
+   theta = theta,
+   pi0 = 1,
+   n_binom = 15,
+   p_binom = 0.2,
+   shift = 7
+)
+
+```
+
+```{R, echo=FALSE, eval=FALSE}
+
+# Create a named vector with the observed counts
+observed_data <- freqs
+names(observed_data) <- as.character(counts)
+
+# ZIGP parameters
+eta <- 0.9993963  
+lambda <- 1.0020464
+theta <- 1.133941e-12
+
+# Generate the plots and analysis
+results <- plot_zigp_comparison(
+  observed_counts = observed_data,
+  eta = eta,
+  lambda = lambda, 
+  theta = theta,
+  max_display = 30,
+  y_min = -15  # Extended y-axis
+)
+
+# Display the plots
+library(gridExtra)
+grid.arrange(results$log_scale, results$linear_scale, ncol = 1)
+
+# Testing separation between null and alternative distributions
+# First, examine where the residuals cross from positive to negative
+crossover_point <- min(which(results$separation_analysis$Residual < 0))
+print(paste("Crossover point where observed becomes less than expected:", 
+            results$separation_analysis$Count[crossover_point]))
+
+# Calculate patterns of overdispersion
+counts_with_excess <- sum(results$separation_analysis$Observed > results$separation_analysis$Fitted)
+print(paste("Number of count values with excess observations:", counts_with_excess))
+
+# Calculate the count where maximum deviation occurs
+max_positive_deviation <- which.max(results$separation_analysis$RelativeDiff)
+print(paste("Count with maximum positive deviation:", 
+            results$separation_analysis$Count[max_positive_deviation]))
+
+# Save the improved plot
+#ggsave("./script3/zigp_log_scale_extended.png", results$log_scale, width = 10, height = 6)
+#ggsave("zigp_ratio_plot.png", results$ratio_plot, width = 10, height = 6)
+
+
+```
+
+```{r zigplogscaleextended, eval=TRUE, echo=FALSE, fig.cap='empiricalzip fitted ZIPG',  fig.align = 'center', out.width = '50%'}
+knitr::include_graphics("./script3/zigp_log_scale_extended.png")
+
+```
+
+\clearpage
+\FloatBarrier
+## Local FDR Calculation
+The local FDR (false discovery rate) at a particular count value is calculated as:
+
+- fdr(t) = ($\pi_0 \times f_0(t)) / f(t)$
+
+Where:
+
+-  $t4 is the mutation count
+-  $\pi_0$ is the estimated proportion of nulls
+-  $ f_0(t)$ is the null distribution probability at count $t$
+-  $f(t)$ is the observed mixture distribution probability at count $t$
+
+In the my.RealDataFDR function, this calculation happens here:
+
+```{verbatim}
+LFDR <- pi[model, CO[method, model]] * gpdMixture(x = sort(x), 
+    estimate[model, 1, CO[method, model]], estimate[model, 
+    2, CO[method, model]], estimate[model, 3, CO[method, 
+    model]]) * f12(sort(x), length(x))
+```
+Breaking this down:
+
+-  pi[model, CO[method, model]] is the estimated $\pi_0$  (proportion of nulls)
+-  gpdMixture() calculates  $ f_0(t)$ , the probability under the null distribution (ZIGP, ZIP, GP, or P) using the estimated parameters
+-  f12(sort(x), length(x)) is a correction factor related to f(t). Looking at the f12 function in the RcppExports.R, this factor is calculated as:
+
+```{verbatim}
+   M / length(x[which(x==x[i])])
+```
+where M is the total number of positions. This is effectively equivalent to $1/f(t)$, where $f(t)$ is the empirical probability of observing count $t$.
+
+For the one-stage procedure, positions are declared significant if:
+
+```{verbatim}
+sum(LFDR[!is.na(LFDR)] < FDRLevel)
+```
+meaning their local FDR is below the specified threshold (in your case, 0.1).
+
+Why Some Positions with Counts >7 Aren't Called Significant
+
+With the ZIGP model estimated parameters for your data, the local FDR for positions with counts of 8, 9, etc. depends on:
+
+-   How rare such counts are in the data (affecting $f(t)$)
+-  How probable they are under the null distribution (affecting $f_0(t)$)
+
+When a position has a count that is high but not extremely high relative to the estimated null distribution, its local
+FDR might still exceed the threshold, especially when $\pi_0$ is estimated to be very close to 1.0.
+
+This is why 7 positions with counts >7 aren't called significant by the one-stage procedure - their local FDR values
+exceed your threshold of 0.1, indicating there's still a substantial probability they come from the null distribution
+despite their relatively high counts.
+
+The two-stage procedure, by contrast, automatically declares positions with counts $\geq$ AD (in this case 8) as significant,
+bypassing the local FDR calculation for these high counts.
+
+
+1. Stage 1 (Screening Step): We reject the $H_0 j \textrm{if } j \leq D_N(\hat{C})$ and do not reject if $j \leq \hat{C}$.
+2. Stage 2 (Testing step): For $\hat{C} + 1 \leq j < D_N(\hat{C})$ , we calculate the local FDR
+
+
+
+
+
+## Simplified two-stage procedure for empiricalzip
+
+-  "Estimated C: 1"
+-  "D_N threshold: 3"
+-  "Significant counts:"   3  4  5  7 27
+- used x_sample so some counts missing
+- could use this value
+
+```{R, echo=FALSE, eval=FALSE}
+# Simplified two-stage procedure for extreme zero-inflation
+simplified_two_stage <- function(data, fixed_C = 1, alpha = 0.05) {
+  # Extract the counts and their frequencies
+  tab <- table(data)
+  counts <- as.numeric(names(tab))
+  freqs <- as.numeric(tab)
+  N <- sum(freqs)
+  
+  # Given extreme zero-inflation, set C directly
+  C_hat <- fixed_C
+  
+  # Estimate parameters for the null distribution (ZIGP)
+  # Given the extreme zeros, simplify parameter estimation
+  eta_est <- freqs[counts == 0] / N  # Zero-inflation parameter
+  
+  # For non-zero values, estimate lambda and theta
+  non_zero_counts <- rep(counts[counts > 0], freqs[counts > 0])
+  lambda_est <- mean(non_zero_counts)
+  theta_est <- min(0.5, var(non_zero_counts) / lambda_est - 1) 
+  
+  # Calculate D_N (direct approach for computational stability)
+  # With extreme zeros, a lower D_N is appropriate
+  D_N <- max(3, C_hat + 1)  # Simple heuristic
+  
+  # Create results structure
+  results <- list(
+    C_hat = C_hat,
+    D_N = D_N,
+    parameters = c(eta = eta_est, lambda = lambda_est, theta = theta_est),
+    significant_counts = counts[counts >= D_N]
+  )
+  
+  return(results)
+}
+
+
+# Load necessary libraries
+library(VGAM)
+library(stats)
+
+# Function to implement the two-stage procedure from Gauran et al.
+two_stage_zigp_procedure <- function(data, alpha = 0.05) {
+  # Extract the counts and their frequencies
+  counts <- as.numeric(names(table(data)))
+  freqs <- as.numeric(table(data))
+  N <- sum(freqs)
+  
+  # Calculate the empirical probabilities
+  f_hat <- freqs / N
+  
+  # Define function to estimate C using the likelihood approach (C1 method)
+  estimate_C1 <- function(counts, freqs, N) {
+    # Initialize variables
+    max_S <- -Inf
+    best_C <- 1
+    
+    # Try different values of C
+    for (v in 1:(max(counts)-1)) {
+      # Subset data for estimation
+      subset_counts <- counts[counts <= v]
+      subset_freqs <- freqs[counts <= v ]
+      
+      # Fit ZIGP to data up to C using MLE or method of moments
+      # This is a simplified approach - in practice, use EM algorithm
+      p_zeros <- subset_freqs[subset_counts == 0] / sum(subset_freqs)
+      lambda_est <- mean(rep(subset_counts, subset_freqs))
+      
+      # Due to extreme zero-inflation, we'll use high eta
+      eta_est <- max(0.95, p_zeros - (1-p_zeros)*exp(-lambda_est))
+      theta_est <- min(0.5, var(rep(subset_counts, subset_freqs)) / lambda_est - 1)
+      
+      # Calculate pi_0 estimate
+      pi0_est <- min(1, sum(freqs[counts <= v]) / (N * sum(zigp_pmf(0:v, eta_est, lambda_est, theta_est))))
+      
+      # Calculate S_v statistic
+      S_v <- sum(freqs[counts <= v] * log(zigp_pmf(counts[counts <= v], eta_est, lambda_est, theta_est) / f_hat[counts <= v]))
+      
+      # Update if this is the best C so far
+      if (S_v > max_S) {
+        max_S <- S_v
+        best_C <- v
+        best_params <- c(eta_est, lambda_est, theta_est, pi0_est)
+      }
+    }
+    
+    return(list(C = best_C, params = best_params))
+  }
+  
+  # Define ZIGP PMF function (simplified)
+  zigp_pmf <- function(x, eta, lambda, theta) {
+    result <- numeric(length(x))
+    
+    # Handle zeros separately due to zero-inflation
+    result[x == 0] <- eta + (1 - eta) * exp(-lambda)
+    
+    # Handle positive values
+    for (i in which(x > 0)) {
+      val <- x[i]
+      prob <- (1 - eta) * (lambda * (lambda + theta * val)^(val - 1) * exp(-lambda - theta * val)) / factorial(val)
+      result[i] <- prob
+    }
+    
+    return(result)
+  }
+  
+  # Calculate D_N (truncation point)
+  calculate_D_N <- function(C, params) {
+    eta <- params[1]
+    lambda <- params[2]
+    theta <- params[3]
+    
+    # Calculate D_N based on the paper's formula
+    # Simplified version for extreme zero-inflation
+    D1 <- ceiling(log(N) / (-log(theta)))
+    D2 <- ceiling(C + 1)
+    
+    return(max(D1, D2))
+  }
+  
+  # Stage 1: Estimate C and calculate D_N
+  C_result <- estimate_C1(counts, freqs, N)
+  C_hat <- C_result$C
+  params <- C_result$params
+  D_N <- calculate_D_N(C_hat, params)
+  
+  # Stage 2: Apply local FDR to values between C+1 and D_N-1
+  local_fdr_result <- numeric(max(counts))
+  
+  for (j in (C_hat+1):(D_N-1)) {
+    if (j %in% counts) {
+      # Calculate local FDR
+      null_density <- zigp_pmf(j, params[1], params[2], params[3])
+      mixture_density <- f_hat[counts == j]
+      local_fdr_result[j] <- params[4] * null_density / mixture_density
+    }
+  }
+  
+  # Determine significant counts
+  significant_counts <- numeric(0)
+  
+  # Reject all counts \geq D_N
+  if (any(counts >= D_N)) {
+    significant_counts <- c(significant_counts, counts[counts >= D_N])
+  }
+  
+  # Reject counts between C+1 and D_N-1 if local FDR \leq alpha
+  for (j in (C_hat+1):(D_N-1)) {
+    if (j %in% counts && local_fdr_result[j] <= alpha) {
+      significant_counts <- c(significant_counts, j)
+    }
+  }
+  
+  return(list(
+    C_hat = C_hat,
+    D_N = D_N,
+    parameters = params,
+    local_fdr = local_fdr_result,
+    significant_counts = significant_counts
+  ))
+} #end two_stage_zigp_procedure
+
+
+
+## Apply the simplified two-stage procedure
+results <- simplified_two_stage(x_sample, fixed_C = 1)
+
+# Display results
+print(paste("Estimated C:", results$C_hat))
+print(paste("D_N threshold:", results$D_N))
+print("Significant counts:")
+print(results$significant_counts)
+
+
+```
+
+
+
+
+# hurdle model implementation
+
+```{R, echo=FALSE, eval=FALSE}
+
+
+library(pscl)  # For hurdle model implementation
+
+# Fit a hurdle model
+hurdle_model <- hurdle(
+  x ~ 1,               # Formula (just intercept in this simple case)
+  data = data.frame(x = x_sample),
+  dist = "negbin",     # Distribution for non-zero counts
+  zero.dist = "binomial" # Distribution for zero vs non-zero process
+)
+
+summary(hurdle_model)
+
+```
+
+```{R, echo=FALSE, eval=FALSE}
+# what is this? remove it
+# Custom function for extreme zero-inflation
+extreme_zero_model <- function(x, min_count = 3) {
+  # Calculate basic statistics
+  zeros <- sum(x == 0)
+  n <- length(x)
+  p_zero <- zeros/n
+  
+  # Estimate significance threshold
+  # For extreme zero-inflation, we can use empirical approach
+  unique_counts <- sort(unique(x))
+  freq_table <- table(x)
+  
+  # Simple rule: counts are significant when they occur with 
+  # frequency less than 0.1% of non-zero observations
+  rarity_threshold <- 0.001 * (n - zeros)
+  significant <- unique_counts[unique_counts >= min_count & 
+                              freq_table[as.character(unique_counts)] < rarity_threshold]
+  
+  return(list(
+    p_zero = p_zero,
+    significant_counts = significant
+  ))
+}
+
+```
+
+
+# what is this 
+```{R, echo=FALSE,eval=FALSE} 
+
+
+
+length(intersect(interaction_snps_counts$interaction_snps[1:50],lm_results$interaction_snps[1:88])) #22
+# lm_results (has been ordered by lm_results$int_Pvalue)
+
+t1 <- setdiff(interaction_snps_counts$interaction_snps[1:50],lm_results$interaction_snps[1:88])
+match(t1,interaction_snps_counts$interaction_snps)  #3  4  5  7 
+
+t1[1]
+#1] "X6_32222493 X6_32771829"
+interaction_snps_counts[3,]
+#              interaction_snps Freq
+#280884 X6_32222493 X6_32771829  113
+
+lm_results[grep("X6_32771829", lm_results$interaction_snps),] #301
+lm_results[grep("X6_32222493 X6_32771829", lm_results$interaction_snps),] 
+#              interaction_snps Freq SNP1_effect  SNP1_Pvalue SNP2_effect  SNP2_Pvalue int_effect int_Pvalue        Ch2 correlations splits_SNP1 splits_SNP2
+#280884 X6_32222493 X6_32771829  113   0.3937617 6.972158e-09  -0.6516203 2.576182e-27 -0.1303979 0.08982739 0.03193039   -0.3742329          18          14
+#       adj_p_value_bonferrroni adj_p_value_fdr adj_p_value_Ch2
+#280884                57.48953       0.2521143       0.1011656
+
+# so this is not significant for any of the tests except empiricalzip
+# how does it have  splits_SNP1=18,  splits_SNP2=14 but Freq=113
+
+
+chisq.test(table( dt[,"X6_32222493",], dt[,"X6_32771829",]))
+
+aa<-rep(NA, 74)
+for ( i in 1:74){
+    aa[i] <- length(grep(imp[i],interaction_snps_counts$interaction_snps[1:50]))
+    }
+aa
+# [1] 21 13  8  7  5  5  5  8  5  3  2  2  2  1  2  2  1  1  0  0  1  0  0  0  0  0  1  0  0  0  1  0  0  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0
+#[56]  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+
+
+
+index <- match(selectedSNPs,colnames(dt))
+index <- index[order(index)]
+
+data4interactions <- dt[,index]
+saveRDS(data4interactions,paste0(dirOut,"/data4interactions.rds"))
+
+SNPs <- lm_results$interaction_snps
+
+SNPs <- as.character(SNPs)
+SNPs <- gsub("X","" ,SNPs)
+#SNPs <- read.table("Results/SNPs.txt",header=T)
+
+```
+
+
+4. what is the intesection of imp and interacting transcripts                                                         
+   
+   - see table at end of section
+
+
+
+- "X6_32222493 X6_32771829" see below, how does it have  splits_SNP1=18,  splits_SNP2=14 but Freq=113
+
+   - it doesnt t2["X6_32222493"] =202 t2["X6_32771829"]= 1532 -- lm_result has a problem 
+
+
+
+
+# compare some distributions
+
+- modified compare_distributions function and related plotting functions to work with a frequency table input rather than requiring the full vector. 
+This will be much more memory-efficient when dealing with large datasets that have many zeros.
+
+```{R, echo=FALSE, eval=FALSE}
+# Then run the comparison
+results <- compare_distributions_from_freq(counts, freqs, n_zeros)
+
+# View results
+print(results$comparison)
+#    Model LogLikelihood Parameters     AIC     BIC AIC_Ratio
+#2 ZI-Zipf      -3102980          2 6205964 6206005         1
+#3    ZINB          -Inf          3     Inf     Inf       Inf
+#1    ZIGP           NaN          3     NaN     NaN       NaN
+
+print(paste("Best model:", results$best_model))
+
+#png("./script3/ZI_Zipf_plot.png")
+results$plots$"ZI_Zipf"
+#dev.off()
+#png("./script3/ZIGP_plot.png")
+results$plots$"ZIGP"
+#dev.off()
+#png("./script3/ZINB_plot.png")
+results$plots$"ZINB"
+#dev.off()
+
+results$parameters
+#$ZIGP $ZIGP$eta [1] 0.9999 $ZIGP$lambda [1]  0.9752822  $ZIGP$theta  [1]  0.03459262
+#$ZI_Zipf $ZI_Zipf$p0 [1] 0.9999348 $ZI_Zipf$alpha [1] 8.288837 
+#$ZINB $ZINB$p0 [1] 0.9999348 $ZINB$pi_0  [1] 0.9998953 $ZINB$size  [1] 13.84857 $ZINB$mu [1] 1.010229
+
+```
+
+```{R, zipfplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Power Law (Zipf) Distribution", out.width = '50%',fig.align = 'center'}
+knitr::include_graphics("./script3/ZI_Zipf_plot.png")
+```
+
+```{R, zigpplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Generalized Poisson", out.width = '50%',fig.align = 'center'}
+knitr::include_graphics("./script3/ZIGP_plot.png")
+```
+
+```{R, zinbplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Negative Binomial", out.width = '50%',fig.align = 'center'}
+knitr::include_graphics("./script3/ZINB_plot.png")
+```
+
+```{R, echo=FALSE, eval=FALSE}
+# Modified functions to work with frequency data instead of raw vectors
+
+# ZIGP probability mass function
+zigp_pmf <- function(x, eta, lambda, theta) {
+  result <- numeric(length(x))
+  
+  # Handle zeros
+  result[x == 0] <- eta + (1 - eta) * exp(-lambda)
+  
+  # Handle positive values
+  for (i in which(x > 0)) {
+    val <- x[i]
+    prob <- (1 - eta) * lambda * (lambda + theta * val)^(val - 1) * exp(-lambda - theta * val) / factorial(val)
+    result[i] <- prob
+  }
+  
+  return(result)
+}
+
+# Modifications to handle extreme zero-inflation
+# For the ZIGP model:
+estimate_zigp_params_from_freq <- function(counts, freqs, n_zeros) {
+  # Calculate basic statistics
+  n <- sum(freqs) + n_zeros
+  p_zeros <- n_zeros / n
+  
+  # If extreme zero-inflation
+  if (p_zeros > 0.9999) {
+    # Use a simpler model with high but not exactly 1 eta
+    return(list(eta = 0.9999, lambda = mean(counts[counts > 0]), theta = 0))
+  }
+  
+    # Rest of the function as before...
+  # Calculate statistics for positive values
+  if (sum(freqs[counts > 0]) == 0) {
+    return(list(eta = 1, lambda = 1, theta = 0))  # All zeros case
+  }
+  
+  # Calculate mean and variance of positive values
+  # Weighted calculations using frequencies
+  mean_pos <- sum(counts[counts > 0] * freqs[counts > 0]) / sum(freqs[counts > 0])
+  
+  # Calculate variance
+  var_pos <- sum(freqs[counts > 0] * (counts[counts > 0] - mean_pos)^2) / sum(freqs[counts > 0])
+  
+  # Estimate parameters using method of moments
+  # For zero-inflated data, first estimate eta
+  eta_est <- max(0, (p_zeros - exp(-mean_pos)) / (1 - exp(-mean_pos)))
+  
+  # Then estimate lambda and theta from positive values
+  lambda_est <- mean_pos
+ # Estimate theta from variance relationship
+  # In GP: Var(X) = lambda / (1-theta)^2
+  # Solving for theta
+  theta_est <- max(0, min(0.999, 1 - sqrt(lambda_est / var_pos)))
+  
+  return(list(eta = eta_est, lambda = lambda_est, theta = theta_est))
+}
+aa<- estimate_zigp_params_from_freq(counts, freqs, n_zeros)
+
+```
+
+```{R, echo=FALSE, eval=FALSE}
+# Improved function to estimate ZIGP parameters from frequency data
+# This handles zero-inflation properly by treating zeros separately
+improved_estimate_zigp_params <- function(counts, freqs, n_zeros) {
+  # Calculate basic statistics
+  n <- sum(freqs) + n_zeros
+  p_zeros <- n_zeros / n
+  
+  # Focus only on non-zero counts for fitting Generalized Poisson
+  pos_idx <- counts > 0
+  pos_counts <- counts[pos_idx]
+  pos_freqs <- freqs[pos_idx]
+  
+  # Calculate weighted statistics for positive counts
+  mean_pos <- sum(pos_counts * pos_freqs) / sum(pos_freqs)
+  var_pos <- sum(pos_freqs * (pos_counts - mean_pos)^2) / sum(pos_freqs)
+  
+  # Check if the data is actually highly overdispersed
+  if (var_pos < mean_pos) {
+    # If variance is less than mean (underdispersed), default to Poisson (theta = 0)
+    lambda_est <- mean_pos
+    theta_est <- 0
+  } else {
+    # For overdispersed data, estimate theta using variance relationship
+    # In GP: Var(X) = lambda * (1 + theta)^2 / (1 - theta)^2
+    # Solving for theta (simplified version)
+    dispersion_ratio <- var_pos / mean_pos
+    
+    if (dispersion_ratio <= 1) {
+      # No overdispersion
+      theta_est <- 0
+    } else if (dispersion_ratio < 10) {
+      # Moderate overdispersion - using approximation
+      theta_est <- 1 - 1/sqrt(dispersion_ratio)
+      theta_est <- max(0, min(0.8, theta_est))  # Cap at 0.8 for stability
+    } else {
+      # Extreme overdispersion - use caution
+      theta_est <- 0.8  # Cap at 0.8 for numerical stability
+    }
+    
+    # Adjust lambda based on theta estimate
+    lambda_est <- mean_pos * (1 - theta_est)
+  }
+  
+  # Calculate eta (zero-inflation parameter) using the fitted GP distribution
+  p_zero_gp <- exp(-lambda_est)  # Probability of zero under GP
+  
+  # Handle extreme zero-inflation
+  if (p_zeros > 0.9999) {
+    eta_est <- 0.9999  # Cap at 0.9999 for numerical stability
+  } else if (p_zeros <= p_zero_gp) {
+    # If observed zeros are fewer than expected from GP alone
+    eta_est <- 0  # No zero-inflation needed
+  } else {
+    # Calculate eta using the zero-inflation formula
+    eta_est <- (p_zeros - p_zero_gp) / (1 - p_zero_gp)
+    eta_est <- max(0, min(0.9999, eta_est))  # Ensure it's in [0, 0.9999]
+  }
+  
+  # Print debugging information
+  cat("Estimated parameters:\n")
+  cat("Mean of positive counts:", mean_pos, "\n")
+  cat("Variance of positive counts:", var_pos, "\n")
+  cat("Dispersion ratio (var/mean):", var_pos/mean_pos, "\n")
+  cat("eta:", eta_est, "\n")
+  cat("lambda:", lambda_est, "\n")
+  cat("theta:", theta_est, "\n")
+  
+  # Return estimates
+  return(list(eta = eta_est, lambda = lambda_est, theta = theta_est))
+}
+
+# Function to calculate ZIGP probabilities
+zigp_pmf <- function(x, eta, lambda, theta) {
+  result <- numeric(length(x))
+  
+  # Handle zeros separately due to zero-inflation
+  result[x == 0] <- eta + (1 - eta) * exp(-lambda)
+  
+  # Handle positive values
+  for (i in which(x > 0)) {
+    val <- x[i]
+    prob <- (1 - eta) * lambda * (lambda + theta * val)^(val - 1) * 
+            exp(-lambda - theta * val) / factorial(val)
+    result[i] <- prob
+  }
+  
+  return(result)
+}
+
+# Function to compare observed vs expected frequencies
+compare_observed_expected <- function(counts, freqs, n_zeros, params) {
+  # Create full data frame for comparison
+  all_counts <- c(0, counts)
+  all_freqs <- c(n_zeros, freqs)
+  total_n <- sum(all_freqs)
+  
+  # Calculate ZIGP probabilities
+  expected_probs <- zigp_pmf(all_counts, params$eta, params$lambda, params$theta)
+  expected_freqs <- expected_probs * total_n
+  
+  comparison <- data.frame(
+    Count = all_counts,
+    Observed = all_freqs,
+    Expected = expected_freqs,
+    ObsProb = all_freqs / total_n,
+    ExpProb = expected_probs,
+    Ratio = all_freqs / expected_freqs
+  )
+  
+  return(comparison)
+}
+
+# Example usage:
+# counts <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+# freqs <- c(290502, 418, 89, 29, 22, 14, 11, 7, 5, 4)
+# n_zeros <- 4463369228
+# 
+# # Estimate improved parameters
+params <- improved_estimate_zigp_params(counts, freqs, n_zeros)
+# 
+# # Compare observed vs expected
+comparison <- compare_observed_expected(counts, freqs, n_zeros, params)
+print(comparison)
+estimate_zigp_params_from_freq<- improved_estimate_zigp_params
+
+```
+
+
+```{R, echo=FALSE, eval=FALSE}
+# Power law PMF (Zipf distribution)
+zipf_pmf <- function(x, alpha, xmin = 1) {
+  result <- numeric(length(x))
+  # Use a more efficient approach for normalization
+  denom <- zeta(alpha, xmin)  # Riemann zeta function starting at xmin
+  
+  result[x < xmin] <- 0
+  result[x >= xmin] <- (x[x >= xmin]^(-alpha)) / denom
+  
+  return(result)
+}
+
+# Helper function: approximate Riemann zeta function
+zeta <- function(alpha, xmin = 1) {
+  # For alpha > 1, we can use a finite sum for approximation
+  max_k <- 10000  # This should be enough for good approximation with alpha > 2
+  sum((xmin:max_k)^(-alpha))
+}
+
+# For zero-inflated data, combine with point mass at zero
+zi_zipf_pmf <- function(x, p0, alpha, xmin = 1) {
+  result <- numeric(length(x))
+  result[x == 0] <- p0
+  result[x > 0] <- (1 - p0) * zipf_pmf(x[x > 0], alpha, xmin)
+  return(result)
+}
+
+# Zero-inflated negative binomial
+zinb_pmf <- function(x, p0, size, mu) {
+  result <- numeric(length(x))
+  result[x == 0] <- p0 + (1 - p0) * dnbinom(0, size = size, mu = mu)
+  result[x > 0] <- (1 - p0) * dnbinom(x[x > 0], size = size, mu = mu)
+  return(result)
+}
+
+# Fit Zipf distribution from frequency data
+fit_zipf_from_freq <- function(counts, freqs) {
+  # Skip 0 counts
+  pos_idx <- counts > 0
+  if(sum(pos_idx) == 0) return(list(alpha = 1))
+  
+  pos_counts <- counts[pos_idx]
+  pos_freqs <- freqs[pos_idx]
+  
+  # MLE for alpha (approximate)
+  alpha_start <- 1.5  # Starting value
+  
+  neg_ll <- function(alpha) {
+    # Calculate log likelihood weighted by frequencies
+    -sum(pos_freqs * log(zipf_pmf(pos_counts, alpha)))
+  }
+  
+  result <- optim(alpha_start, neg_ll, method = "BFGS")
+  return(list(alpha = result$par))
+}
+
+# Fit Negative Binomial from frequency data
+fit_nb_from_freq <- function(counts, freqs) {
+  # Skip 0 counts
+  pos_idx <- counts > 0
+  if(sum(pos_idx) == 0) return(list(size = 1, mu = 1))
+  
+  pos_counts <- counts[pos_idx]
+  pos_freqs <- freqs[pos_idx]
+  
+  # Calculate mean and variance using frequencies as weights
+  mu_est <- sum(pos_counts * pos_freqs) / sum(pos_freqs)
+  
+  # Calculate variance
+  var_est <- sum(pos_freqs * (pos_counts - mu_est)^2) / sum(pos_freqs)
+  
+  if(var_est <= mu_est) var_est <- mu_est * 1.1  # Ensure overdispersion
+  
+  size_est <- mu_est^2 / (var_est - mu_est)
+  
+  return(list(size = size_est, mu = mu_est))
+}
+
+# Improved plotting function for frequency data
+plot_distribution_from_freq <- function(counts, freqs, n_zeros, model_name, model_probs, p0 = NULL) {
+  # Add the zero count
+  all_counts <- c(0, counts)
+  all_freqs <- c(n_zeros, freqs)
+  
+  # Calculate observed probabilities
+  total_n <- sum(all_freqs)
+  obs_probs <- all_freqs / total_n
+  
+  # Focus on counts with significant probability
+  max_count <- min(50, max(all_counts))
+  
+  # Create a sequence of counts to display
+  display_counts <- 0:max_count
+  
+  # Create data for plotting
+  plot_data <- data.frame(
+    Count = factor(display_counts),
+    Observed = NA,
+    Fitted = NA
+  )
+  
+  # Fill in observed probabilities
+  for(i in 1:length(all_counts)) {
+    if(all_counts[i] <= max_count) {
+      idx <- which(display_counts == all_counts[i])
+      if(length(idx) > 0) {
+        plot_data$Observed[idx] <- obs_probs[i]
+      }
+    }
+  }
+  
+  # Fill in fitted probabilities
+  model_counts <- c(0, counts) # Include zero
+  if(length(model_probs) < length(model_counts)) {
+    # Handle case where model_probs might not have same length
+    model_probs <- c(model_probs[1], model_probs)  # Duplicate first value for zero
+  }
+  
+  for(i in 1:length(model_counts)) {
+    if(model_counts[i] <= max_count) {
+      idx <- which(display_counts == model_counts[i])
+      if(length(idx) > 0) {
+        plot_data$Fitted[idx] <- model_probs[i]
+      }
+    }
+  }
+  
+  # Convert to long format for plotting
+  library(tidyr)
+  plot_long <- pivot_longer(plot_data, 
+                           cols = c("Observed", "Fitted"),
+                           names_to = "Type", 
+                           values_to = "Probability")
+  
+  # Remove missing values
+  plot_long <- plot_long[!is.na(plot_long$Probability),]
+  
+  # Create the plot
+  library(ggplot2)
+  model_label <- paste("Fitted", model_name)
+  fill_values <- c("red", "blue")
+  names(fill_values) <- c("Observed", "Fitted")
+  
+  p <- ggplot(plot_long, aes(x = Count, y = Probability, fill = Type)) +
+    geom_bar(stat = "identity", position = "dodge", alpha = 0.7) +
+    scale_y_log10(limits = c(min(plot_long$Probability[plot_long$Probability > 0]) * 0.5, 1)) +
+    theme_minimal() +
+    labs(title = paste("Observed vs Fitted", model_name, "Probabilities (log scale)"),
+         subtitle = if(!is.null(p0)) paste0("p0 = ", round(p0, 4)) else "",
+         x = "Count Value", y = "Probability (log scale)") +
+    scale_fill_manual(values = fill_values) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  return(p)
+}
+
+# Main function to compare distributions based on frequency data
+compare_distributions_from_freq <- function(counts, freqs, n_zeros) {
+  # Calculate total number of observations
+    n <- sum(freqs) + n_zeros
+    # For the log-likelihood calculations:
+    # Add small epsilon to avoid log(0)
+    epsilon <- 1e-10
+    
+  # Calculate empirical probability of zero
+  p0_emp <- n_zeros / n
+  
+  # Fit ZIGP (as baseline)
+  params_zigp <- estimate_zigp_params_from_freq(counts, freqs, n_zeros)
+  
+  # Calculate ZIGP probabilities and log-likelihood
+  unique_counts <- sort(unique(c(0, counts)))
+  probs_zigp <- zigp_pmf(unique_counts, params_zigp$eta, params_zigp$lambda, params_zigp$theta)
+  
+  # Calculate log likelihood using frequencies
+  count_map <- match(c(0, counts), unique_counts)
+  #ll_zigp <- n_zeros * log(probs_zigp[1]) + sum(freqs * log(probs_zigp[count_map[-1]]))
+  ll_zigp <- n_zeros * log(max(probs_zigp[1], epsilon)) + sum(freqs * log(pmax(probs_zigp[count_map[-1]], epsilon)))
+    
+  # Fit power law (Zipf)
+  params_zipf <- fit_zipf_from_freq(counts, freqs)
+  p0_est <- p0_emp
+  
+  # Calculate Zipf probabilities and log-likelihood
+  probs_zipf_pos <- zipf_pmf(counts, params_zipf$alpha)
+  probs_zipf <- c(p0_est, (1-p0_est) * probs_zipf_pos)
+  #ll_zipf <- n_zeros * log(p0_est) + sum(freqs * log((1-p0_est) * probs_zipf_pos))
+  ll_zipf <- n_zeros * log(max(p0_est, epsilon)) +   sum(freqs * log(pmax((1-p0_est) * probs_zipf_pos, epsilon)))
+    
+  # Fit Negative Binomial
+  params_nb <- fit_nb_from_freq(counts, freqs)
+  
+    # Calculate NB probabilities and log-likelihood
+    # For the ZINB model:
+    # Ensure the parameters are reasonable for extreme zero-inflation
+    params_nb$size <- pmin(params_nb$size, 1000)  # Cap the size parameter
+
+  probs_nb_pos <- dnbinom(counts, size = params_nb$size, mu = params_nb$mu)
+  probs_nb_0 <- dnbinom(0, size = params_nb$size, mu = params_nb$mu)
+  
+  # For zero-inflated model
+  pi_0 <- (p0_est - probs_nb_0) / (1 - probs_nb_0)
+  pi_0 <- max(0, min(1, pi_0))  # Ensure valid probability
+  
+  probs_zinb <- c(p0_est, (1-pi_0) * probs_nb_pos)
+  ll_nb <- n_zeros * log(p0_est) + sum(freqs * log((1-pi_0) * probs_nb_pos))
+  
+  # Calculate AIC and BIC
+  aic_zigp <- -2 * ll_zigp + 2 * 3  # 3 parameters
+  aic_zipf <- -2 * ll_zipf + 2 * 2  # 2 parameters
+  aic_nb <- -2 * ll_nb + 2 * 3      # 3 parameters
+  
+  bic_zigp <- -2 * ll_zigp + log(n) * 3
+  bic_zipf <- -2 * ll_zipf + log(n) * 2
+  bic_nb <- -2 * ll_nb + log(n) * 3
+  
+  # Create comparison table
+  results <- data.frame(
+    Model = c("ZIGP", "ZI-Zipf", "ZINB"),
+    LogLikelihood = c(ll_zigp, ll_zipf, ll_nb),
+    Parameters = c(3, 2, 3),
+    AIC = c(aic_zigp, aic_zipf, aic_nb),
+    BIC = c(bic_zigp, bic_zipf, bic_nb),
+    AIC_Ratio = c(aic_zigp/aic_zipf, 1, aic_nb/aic_zipf)  # Add ratio to better interpret differences
+  )
+  
+  # Sort by AIC
+  results <- results[order(results$AIC),]
+  
+  # Create plots for each model
+  p_zigp <- plot_distribution_from_freq(counts, freqs, n_zeros, "ZIGP", probs_zigp, params_zigp$eta)
+  p_zipf <- plot_distribution_from_freq(counts, freqs, n_zeros, "ZI-Zipf", probs_zipf, p0_est)
+  p_nb <- plot_distribution_from_freq(counts, freqs, n_zeros, "ZINB", probs_zinb, p0_est)
+  
+  # Return results
+  return(list(
+    comparison = results,
+    best_model = results$Model[1],
+    plots = list(ZIGP = p_zigp, ZI_Zipf = p_zipf, ZINB = p_nb),
+    parameters = list(
+      ZIGP = params_zigp,
+      ZI_Zipf = c(list(p0 = p0_est), params_zipf),
+      ZINB = c(list(p0 = p0_est, pi_0 = pi_0), params_nb)
+    )
+  ))
+}
+
+
+```
+
+
+
+\begin{table}[h]
+\centering
+\caption{Model Comparison for Rheumatoid Arthritis Interaction Data}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Model} & \textbf{LogLikelihood} & \textbf{Parameters} & \textbf{AIC} & \textbf{BIC} & \textbf{AIC Ratio} \\
+\hline
+ZI-Zipf & -3,102,980 & 2 & 6,205,964 & 6,206,005  & 1.000 \\
+ZINB    & -$\infty$  & 3 & $\infty$ & $\infty$    & $\infty$ \\
+ZIGP    & NaN        & 3 & NaN      & NaN         & NaN \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Estimated Parameters for Distribution Models}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Model} & \textbf{Parameter 1} & \textbf{Parameter 2} & \textbf{Parameter 3} \\
+\hline
+ZIGP & $\eta = 0.9999$ & $\lambda = 46.5641$ & $\theta = 0$ \\
+ZI-Zipf & $p_0 = 0.9999348$ & $\alpha = 8.288837$ & -- \\
+ZINB & $p_0 = 0.9999348$ & $\pi_0 = 0.9998953$ & size = $13.84857$, $\mu = 1.010229$ \\
+\hline
+\end{tabular}
+  \end{table}
+
+- For ZIGP Model (NaN result):
+
+  -  With eta = 0.9999 (extremely high zero-inflation) and theta = 0.03459262, the ZIGP model is not far from a Zero-Inflated Poisson with probability of zero very close to 1.
+  -  When calculating log-likelihood for this model, you're likely getting extremely small probability values for non-zero counts, which when logged are approaching negative infinity.
+  -  The combination of multiple very small probabilities in the log-likelihood calculation is causing arithmetic underflow, resulting in NaN.
+
+- For ZINB Model (Inf result):
+
+  -   With extremely high zero-inflation ($p_0 = 0.9999348 and pi_0 = 0.9998953), the model is struggling to explain the non-zero counts.
+  -  The parameter size = 13.84857 with mu = 1.010229 means the distribution has a relatively narrow shape.
+  -  The log-likelihood is likely resulting in -Inf because some observed counts have essentially zero probability under this model, and log(0) is -Inf.
+
+The Core Issue: Extreme Zero-Inflation
+
+- Your data has extreme zero-inflation (over 99.99% zeros). This causes numerical instabilities when fitting these models:
+
+  -  When eta or p0 are extremely close to 1, the probability assigned to any non-zero count becomes vanishingly small.
+  -  This leads to arithmetic underflow, where the computer can't represent such small numbers accurately.
+  -  The ZI-Zipf model handles this better because power-law distributions naturally accommodate heavy tails better than Poisson or Negative Binomial.
+
+
+# Power law
+
+- A true power law would show a straight line. Deviations suggest a different distribution.
+```{R, echo=FALSE, eval=FALSE}
+# Plot log(frequency) vs log(count)
+png("./script3/power_law.png")
+plot(log(counts[counts > 0]), log(freqs[counts > 0]), 
+     xlab="log(count)", ylab="log(frequency)")
+abline(lm(log(freqs[counts > 0]) ~ log(counts[counts > 0])))
+dev.off()
+
+```
+
+```{R, powerlaw, echo=FALSE, eval=TRUE, fig.cap="Plot of log(frequency) vs log(count). A power law would show a straight line", out.width = '50%',fig.align = 'center'}
+knitr::include_graphics("./script3/power_law.png")
+```
+
+
+# thresholding
+
+
+```{R, echo= TRUE, eval=FALSE}
+# Function to calculate meaningful thresholds for each model
+calculate_thresholds <- function(counts, freqs, n_zeros, model_params) {
+  # Total count
+  n_total <- sum(freqs) + n_zeros
+  
+  # Calculate mean and SD of positive counts
+  mean_pos <- sum(counts * freqs) / sum(freqs)
+  var_pos <- sum(freqs * (counts - mean_pos)^2) / sum(freqs)
+  sd_pos <- sqrt(var_pos)
+  
+  # Calculate various thresholds
+  thresholds <- list()
+  
+  # 1. Empirical approaches
+  thresholds$empirical <- list(
+    mean_plus_2sd = ceiling(mean_pos + 2 * sd_pos),
+    mean_plus_3sd = ceiling(mean_pos + 3 * sd_pos),
+    mean_plus_5sd = ceiling(mean_pos + 5 * sd_pos),
+    percentile_99 = as.numeric(quantile(rep(counts, freqs), 0.99)),
+    percentile_999 = as.numeric(quantile(rep(counts, freqs), 0.999))
+  )
+  
+  # 2. Model-based approaches
+  # a) For Zipf
+  if (!is.null(model_params$ZI_Zipf)) {
+    alpha <- model_params$ZI_Zipf$alpha
+    p0 <- model_params$ZI_Zipf$p0
+    
+    # Find where probability becomes small
+    find_zipf_threshold <- function(p_threshold) {
+      count <- 1
+      while(count < 100) {  # Reasonable upper limit
+        prob <- (1-p0) * zipf_pmf(count, alpha)
+        if (prob < p_threshold) break
+        count <- count + 1
+      }
+      return(count)
+    }
+    
+    thresholds$zipf <- list(
+      prob_0001 = find_zipf_threshold(0.0001),
+      prob_00001 = find_zipf_threshold(0.00001)
+    )
+  }
+  
+  # b) For ZIGP
+  if (!is.null(model_params$ZIGP)) {
+    eta <- model_params$ZIGP$eta
+    lambda <- model_params$ZIGP$lambda
+    theta <- model_params$ZIGP$theta
+    
+    # Find where probability becomes small
+    find_zigp_threshold <- function(p_threshold) {
+      count <- 1
+      while(count < 100) {  # Reasonable upper limit
+        prob <- (1-eta) * (lambda * (lambda + theta * count)^(count - 1) * 
+                 exp(-lambda - theta * count)) / factorial(count)
+        if (prob < p_threshold) break
+        count <- count + 1
+      }
+      return(count)
+    }
+    
+    thresholds$zigp <- list(
+      prob_0001 = find_zigp_threshold(0.0001),
+      prob_00001 = find_zigp_threshold(0.00001)
+    )
+  }
+  
+  # 3. Count-based approaches
+  # Find natural break points in the distribution
+  natural_breaks <- find_natural_breaks(counts, freqs)
+  thresholds$breaks <- natural_breaks
+  
+  # Return all thresholds
+  return(thresholds)
+}
+
+# Helper function to identify natural break points in count distribution
+find_natural_breaks <- function(counts, freqs) {
+  # Calculate rate of change between consecutive counts
+  rate_change <- numeric(length(counts) - 1)
+  for (i in 1:(length(counts)-1)) {
+    if (counts[i+1] - counts[i] == 1) {  # Only consider consecutive integers
+      rate_change[i] <- freqs[i] / freqs[i+1]
+    } else {
+      rate_change[i] <- NA  # Mark non-consecutive values
+    }
+  }
+  
+  # Find points where rate of change is significantly higher than average
+  valid_rates <- rate_change[!is.na(rate_change)]
+  if (length(valid_rates) < 3) return(list(break_points = NULL))
+  
+  mean_rate <- mean(valid_rates)
+  sd_rate <- sd(valid_rates)
+  
+  # Points where rate of change is > mean + 1.5*SD
+  break_indices <- which(rate_change > mean_rate + 1.5*sd_rate)
+  break_points <- counts[break_indices]
+  
+  # Return the identified break points
+  return(list(
+    break_points = break_points,
+    rate_change = rate_change,
+    suggested_threshold = if(length(break_points) > 0) min(break_points) + 1 else NULL
+  ))
+}
+
+
+thresholds <- calculate_thresholds(counts, freqs, n_zeros, results$parameters)
+print(thresholds)
+## empirical
+## $empirical$mean_plus_2sd
+## [1] 4
+
+## $empirical$mean_plus_3sd
+## [1] 5
+
+## $empirical$mean_plus_5sd
+## [1] 7
+
+## $empirical$percentile_99
+## [1] 1
+
+## $empirical$percentile_999
+## [1] 2
+
+
+## $zipf
+## $zipf$prob_0001
+## [1] 1
+
+## $zipf$prob_00001
+## [1] 2
+
+
+## $zigp
+## $zigp$prob_0001
+## [1] 1
+
+## $zigp$prob_00001
+## [1] 1
+
+
+## $breaks
+## $breaks$break_points
+## [1] 1
+
+## $breaks$rate_change
+##  [1] 694.980861   4.696629   3.068966   1.318182   1.571429   1.272727   1.571429   1.400000   1.250000   1.333333   1.000000   1.000000   0.750000   4.000000   1.000000   1.000000
+## [17]   1.000000         NA   2.000000         NA   1.000000   0.500000         NA         NA         NA         NA   1.000000         NA         NA   0.500000   2.000000         NA
+## [33]   1.000000         NA         NA         NA         NA         NA
+
+## $breaks$suggested_threshold
+## [1] 2
+
+
+find_natural_breaks (counts, freqs)
+## $break_points
+## [1] 1
+
+## $rate_change
+##  [1] 694.980861   4.696629   3.068966   1.318182   1.571429   1.272727   1.571429   1.400000   1.250000   1.333333   1.000000   1.000000   0.750000   4.000000   1.000000   1.000000
+## [17]   1.000000         NA   2.000000         NA   1.000000   0.500000         NA         NA         NA         NA   1.000000         NA         NA   0.500000   2.000000         NA
+## [33]   1.000000         NA         NA         NA         NA         NA
+
+## $suggested_threshold
+## [1] 2
+
+
+
+```
+
+
+```{R, echo=FALSE, eval=FALSE}
+# more refined threshholding
+
+# Robust Empirical Thresholding for Interaction Counts
+# This approach works for both well-fitted distributions and those that don't follow 
+# standard theoretical distributions
+
+empirical_threshold <- function(counts, freqs, n_zeros = 0) {
+  # Create a data frame for easier analysis
+  df <- data.frame(
+    count = counts,
+    freq = freqs,
+    prop = freqs / sum(freqs)
+  )
+  
+  # Order by count
+  df <- df[order(df$count), ]
+  
+  # Calculate cumulative proportion (excluding zeros)
+  df$cum_prop <- cumsum(df$prop)
+  
+  # Calculate several thresholds
+  thresholds <- list()
+  
+  # 1. Basic statistics on positive counts
+  mean_pos <- sum(df$count * df$freq) / sum(df$freq)
+  var_pos <- sum(df$freq * (df$count - mean_pos)^2) / sum(df$freq)
+  sd_pos <- sqrt(var_pos)
+  
+  # 2. Compute empirical percentiles
+  weighted_data <- rep(df$count, times = df$freq)
+  
+  thresholds$basic <- list(
+    mean = mean_pos,
+    sd = sd_pos,
+    threshold_2sd = ceiling(mean_pos + 2 * sd_pos),
+    threshold_3sd = ceiling(mean_pos + 3 * sd_pos),
+    p95 = as.numeric(quantile(weighted_data, 0.95)),
+    p99 = as.numeric(quantile(weighted_data, 0.99)),
+    p999 = as.numeric(quantile(weighted_data, 0.999))
+  )
+  
+  # 3. Detect "elbows" or breakpoints in the distribution
+  # Calculate rate of change in frequency between consecutive counts
+  df$rate_change <- NA
+  for (i in 1:(nrow(df)-1)) {
+    if (df$count[i+1] - df$count[i] == 1) {  # Only for consecutive counts
+      df$rate_change[i] <- df$freq[i] / df$freq[i+1]
+    }
+  }
+  
+  valid_rates <- df$rate_change[!is.na(df$rate_change)]
+  if (length(valid_rates) >= 3) {
+    mean_rate <- mean(valid_rates)
+    sd_rate <- sd(valid_rates)
+    
+    # Find significant jumps in rate of change
+    # Points where rate of change is > mean + 1.5*SD
+    break_indices <- which(df$rate_change > mean_rate + 1.5*sd_rate)
+    break_points <- df$count[break_indices]
+    
+    thresholds$breakpoints <- list(
+      points = break_points,
+      suggested = if(length(break_points) > 0) min(break_points) + 1 else NULL
+    )
+  } else {
+    thresholds$breakpoints <- list(
+      points = NULL,
+      suggested = NULL
+    )
+  }
+  
+  # 4. Entropy-based thresholding
+  # Calculate entropy of frequency distribution
+  p <- df$prop
+  entropy <- -sum(p * log(p))
+  
+  # Find threshold that maximizes entropy difference between below and above threshold
+  max_diff <- -Inf
+  best_threshold <- 1
+  
+  for (i in 1:max(df$count)) {
+    below <- df[df$count <= i, ]
+    above <- df[df$count > i, ]
+    
+    # Skip if either group is empty
+    if (nrow(below) == 0 || nrow(above) == 0) next
+    
+    # Normalize probabilities within each group
+    p_below <- below$freq / sum(below$freq)
+    p_above <- above$freq / sum(above$freq)
+    
+    # Calculate entropies
+    entropy_below <- -sum(p_below * log(p_below))
+    entropy_above <- -sum(p_above * log(p_above))
+    
+    # Calculate weighted entropy difference
+    entropy_diff <- (sum(below$freq) * entropy_below + sum(above$freq) * entropy_above) / sum(df$freq)
+    
+    if (entropy - entropy_diff > max_diff) {
+      max_diff <- entropy - entropy_diff
+      best_threshold <- i
+    }
+  }
+  
+  thresholds$entropy <- list(
+    threshold = best_threshold + 1  # Add 1 for exclusive threshold
+  )
+  
+  # 5. Exponential decay test
+  # Test if counts follow exponential decay by fitting log(frequency) ~ count
+  if (nrow(df) > 5) {
+    log_freq <- log(df$freq)
+    model <- lm(log_freq ~ df$count)
+    r_squared <- summary(model)$r.squared
+    
+    # If strong exponential decay, use where predicted frequency < 1
+    if (r_squared > 0.8) {
+      coefs <- coef(model)
+      threshold_exp <- ceiling(-coefs[1] / coefs[2])  # Where predicted freq < 1
+      thresholds$exponential <- list(
+        r_squared = r_squared,
+        threshold = threshold_exp
+      )
+    } else {
+      thresholds$exponential <- list(
+        r_squared = r_squared,
+        threshold = NULL
+      )
+    }
+  }
+  
+  # 6. Rarity-based threshold
+  # Define thresholds based on observation frequency
+  total_observations <- sum(df$freq)
+  rare_threshold <- ceiling(total_observations * 0.001)  # 0.1% of observations
+  
+  rare_counts <- df[df$freq <= rare_threshold, "count"]
+  if (length(rare_counts) > 0) {
+    thresholds$rarity <- list(
+      threshold = min(rare_counts)
+    )
+  } else {
+    thresholds$rarity <- list(
+      threshold = NULL
+    )
+  }
+  
+  # 7. Add zero-inflation context if provided
+  if (n_zeros > 0) {
+    # Calculate proportion of zeros
+    p_zero <- n_zeros / (n_zeros + sum(df$freq))
+    thresholds$zero_inflation <- list(
+      p_zero = p_zero
+    )
+    
+    # For extreme zero-inflation (>99.9%), more aggressive thresholds
+    if (p_zero > 0.999) {
+      # With extreme zeros, any occurrence might be significant
+      thresholds$extreme_zero_inflation <- list(
+        threshold = 2  # Consider anything geq 2 significant when zeros dominate
+      )
+    }
+  }
+  
+  # 8. Final recommended threshold based on all methods
+  # Logic for combining thresholds
+  candidates <- c(
+    thresholds$basic$threshold_2sd,
+    thresholds$breakpoints$suggested,
+    thresholds$entropy$threshold,
+    thresholds$rarity$threshold
+  )
+  
+  # Add exponential threshold if available
+  if (!is.null(thresholds$exponential$threshold)) {
+    candidates <- c(candidates, thresholds$exponential$threshold)
+  }
+  
+  # Add extreme zero-inflation threshold if applicable
+  if (!is.null(thresholds$extreme_zero_inflation$threshold)) {
+    candidates <- c(candidates, thresholds$extreme_zero_inflation$threshold)
+  }
+  
+  # Remove NAs
+  candidates <- candidates[!is.na(candidates)]
+  
+  # For final recommendation, use median of available thresholds
+  if (length(candidates) > 0) {
+    thresholds$recommended <- median(candidates, na.rm = TRUE)
+  } else {
+    # Default if no thresholds available
+    thresholds$recommended <- max(2, ceiling(mean_pos + 2 * sd_pos))
+  }
+  
+  # Provide both results and visualization
+  results <- list(
+    thresholds = thresholds,
+    data = df
+  )
+  
+  # Return everything
+  return(results)
+}
+
+# Function to visualize the thresholds on a count distribution
+plot_thresholds <- function(threshold_results, log_scale = TRUE) {
+  df <- threshold_results$data
+  thresholds <- threshold_results$thresholds
+  
+  # Setup plot
+  par(mfrow = c(1, 1))
+  
+  # Create bar plot of frequencies
+  if (log_scale) {
+    barplot(log(df$freq), names.arg = df$count, xlab = "Count", ylab = "Log Frequency", 
+            main = "Distribution of Counts with Thresholds", col = "lightblue")
+  } else {
+    barplot(df$freq, names.arg = df$count, xlab = "Count", ylab = "Frequency", 
+            main = "Distribution of Counts with Thresholds", col = "lightblue")
+  }
+  
+  # Add recommended threshold line
+  abline(v = which(df$count == ceiling(thresholds$recommended)), col = "red", lwd = 2)
+  
+  # Add other threshold lines
+  # Add 2SD threshold
+  if (!is.null(thresholds$basic$threshold_2sd)) {
+    pos <- which(df$count >= thresholds$basic$threshold_2sd)[1]
+    if (!is.na(pos)) {
+      abline(v = pos, col = "blue", lty = 2)
+    }
+  }
+  
+  # Add breakpoint threshold
+  if (!is.null(thresholds$breakpoints$suggested)) {
+    pos <- which(df$count >= thresholds$breakpoints$suggested)[1]
+    if (!is.na(pos)) {
+      abline(v = pos, col = "green", lty = 2)
+    }
+  }
+  
+  # Add entropy threshold
+  if (!is.null(thresholds$entropy$threshold)) {
+    pos <- which(df$count >= thresholds$entropy$threshold)[1]
+    if (!is.na(pos)) {
+      abline(v = pos, col = "purple", lty = 2)
+    }
+  }
+  
+  # Add legend
+  legend("topright", 
+         legend = c("Recommended", "2SD", "Breakpoint", "Entropy"),
+         col = c("red", "blue", "green", "purple"),
+         lty = c(1, 2, 2, 2),
+         lwd = c(2, 1, 1, 1))
+  
+  # Return the plot
+  invisible(threshold_results)
+}
+
+
+
+rheumatoid_thresholds <- empirical_threshold(counts, freqs, n_zeros)
+names(rheumatoid_thresholds$thresholds)
+#[1] "basic"                  "breakpoints"            "entropy"                "exponential"            "rarity"                 "zero_inflation"         "extreme_zero_inflation"
+#[8] "recommended"           
+rheumatoid_thresholds$thresholds$basic$p95$threshold_2sd
+rheumatoid_thresholds$thresholds$basic$threshold_2sd
+rheumatoid_thresholds$thresholds$breakpoints$suggested
+rheumatoid_thresholds$thresholds$entropy
+rheumatoid_thresholds$thresholds$exponential$threshold
+rheumatoid_thresholds$thresholds$rarity$threshold
+rheumatoid_thresholds$thresholds$zero_inflation
+rheumatoid_thresholds$thresholds$extreme_zero_inflation$threshold
+rheumatoid_thresholds$thresholds$recommended
+
+
+plot_thresholds(rheumatoid_thresholds)
+print(rheumatoid_thresholds$thresholds$recommended)
+
+```
+
+
+# plink preprocessing
+
+```{R, echo=FALSE, eval=FALSE}
+maps <- read.table("Cleaned_CaseControl_RAauto_pruned200kb_.3.bim",header=FALSE)
+#.bim (PLINK extended MAP file)
+#Extended variant information file accompanying a .bed binary genotype table. (--make-just-bim can be used to update just this file.)
+#A text file with no header line, and one line per variant with the following six fields:
+#    Chromosome code (either an integer, or 'X'/'Y'/'XY'/'MT'; '0' indicates unknown) or name
+#    Variant identifier
+#    Position in morgans or centimorgans (safe to use dummy value of '0')
+#    Base-pair coordinate (1-based; limited to 231-2)
+#    Allele 1 (corresponding to clear bits in .bed; usually minor)
+#    Allele 2 (corresponding to set bits in .bed; usually major)
+
+## .fam (PLINK sample information file)
+## Sample information file accompanying a .bed binary genotype table. (--make-just-fam can be used to update just this file.) Also generated by "--recode lgen" and "--recode rlist".
+## A text file with no header line, and one line per sample with the following six fields:
+##     Family ID ('FID')
+##     Within-family ID ('IID'; cannot be '0')
+##     Within-family ID of father ('0' if father isn't in dataset)
+##     Within-family ID of mother ('0' if mother isn't in dataset)
+##     Sex code ('1' = male, '2' = female, '0' = unknown)
+##     Phenotype value ('1' = control, '2' = case, '-9'/'0'/non-numeric = missing data if case/control)
+## With the use of additional loading flag(s), PLINK can also correctly interpret some .fam files missing one or more of these fields.
+
+
+maps$chrNpos <- paste0(maps$V1,"_",maps$V4)
+lm_results$SNP1ID <- ""
+lm_results$SNP2ID <- ""
+
+for(s in 1:length(SNPs)){
+  tmp1 <- strsplit(SNPs[s]," ")[[1]][1]
+  tmp2 <- strsplit(SNPs[s]," ")[[1]][2]
+  
+  index <- which(maps$chrNpos==tmp1)
+  lm_results$SNP1ID[s] <- as.character(maps[index,2])
+  index <- which(maps$chrNpos==tmp2)
+  lm_results$SNP2ID[s] <- as.character(maps[index,2])
+  
+}
+
+index <- which(lm_results$adj_p_value<0.05)
+allSNPs <- union(lm_results$SNP1ID,lm_results$SNP2ID)
+
+for(p in 1:length(index)){
+  plinkCommand <- paste0("plink --bfile Cleaned_CaseControl_RAauto_pruned200kb_.3 --ld   ",lm_results$SNP1ID[p]," " ,lm_results$SNP2ID[p]," --out  ",lm_results$SNP1ID[p],"_" ,lm_results$SNP2ID[p])
+  system(plinkCommand)
+}
+
+## PLINK v1.90p 64-bit (30 Nov 2019)              www.cog-genomics.org/plink/1.9/
+## (C) 2005-2019 Shaun Purcell, Christopher Chang   GNU General Public License v3
+## Logging to rs3134926_rs9268831.log.
+## Options in effect:
+##   --bfile Cleaned_CaseControl_RAauto_pruned200kb_.3
+##   --ld rs3134926 rs9268831
+##   --out rs3134926_rs9268831
+
+## 515398 MB RAM detected; reserving 257699 MB for main workspace.
+## Error: Failed to open Cleaned_CaseControl_RAauto_pruned200kb_.3.bed.
+## PLINK v1.90p 64-bit (30 Nov 2019)              www.cog-genomics.org/plink/1.9/
+## (C) 2005-2019 Shaun Purcell, Christopher Chang   GNU General Public License v3
+## Logging to _.log.
+## Options in effect:
+##   --bfile Cleaned_CaseControl_RAauto_pruned200kb_.3
+##   --ld
+##   --out _
+
+## Error: --ld requires at least 2 parameters.
+## For more information, try "plink --help <flag name>" or "plink --help | more".
+
+lm_results$LD <- ""
+lm_results$Rsq <- ""
+lm_results$Dprime <- ""
+library(reader)
+for(r in 1:length(index)){
+  file <- paste0(lm_results$SNP1ID[r],"_",lm_results$SNP2ID[r],".log")
+  lds <- n.readLines(file,n=24, skip = 23)[1]
+  tmpR <- strsplit(lds,"D'")[[1]][1]
+  tmpD <- strsplit(lds,"D'")[[1]][2]
+  lm_results$Rsq[r] <- as.numeric(strsplit(tmpR,"R-sq = ")[[1]][2])
+  lm_results$Dprime[r] <- as.numeric(strsplit(tmpD," <- ")[[1]][2])
+  lm_results$LD[r]=lds
+}
+
+write.csv(lm_results[1:length(index),],paste0(dirOut,"/interacting_SNPs.csv"))
+
+# counts=countMatrix#readRDS(paste0(dirOut,"/countMatrix_Nit",t,"_",".rds"))
+# rm(countMatrix)
+# gc()
+# 
+# counts[lower.tri(counts, diag = T)] =0# counts[upper.tri(counts)]
+# index = which(counts>0)
+# rowIndex = index%%ncol(counts)
+# colIndex = floor(index/ncol(counts))+1
+# length(index)
+# 
+# interactions = data.frame(SNP1=colnames(counts)[rowIndex],SNP2=colnames(counts)[colIndex],Index=index,counts=counts[index])
+# interactions = interactions[order(interactions$counts,decreasing = T),]
+# write.csv(interactions,paste0(dirOut,"/interactions",t,".csv"),row.names = F)
+# 
+# ######################## Interaction modelling and code here
+# #interactions=read.csv(paste0(dirOut,"/interactions",t,".csv"))
+# index=which(interactions$counts>=2)
+# 
+# lm_results = data.frame(interactions[index,],SNP1_effect=0,SNP1_Pvalue=1,SNP2_effect=0,
+#                         SNP2_Pvalue=1,int_effect=0,int_Pvalue=1)
+# dim(lm_results)
+# 
+# for(l in 1:nrow(lm_results)){
+#   ind1 = which(colnames(dt)==lm_results$SNP1[l])
+#   ind2 = which(colnames(dt)==lm_results$SNP2[l])
+#   s = summary(lm(dt$pheno ~ dt[,ind1]*dt[,ind2]), data= dt)$coeff
+#   if(nrow(s)==4){
+#     lm_results$SNP1_effect[l] = s[2,1]
+#     lm_results$SNP1_Pvalue[l] = s[2,4]
+#     lm_results$SNP2_effect[l] = s[3,1]
+#     lm_results$SNP2_Pvalue[l] = s[3,4]
+#     lm_results$int_effect[l] = s[4,1]
+#     lm_results$int_Pvalue[l] = s[4,4]
+#   }
+# }
+# 
+# 
+# 
+# lm_results = lm_results[order(lm_results$int_Pvalue,decreasing = F),]
+# lm_results$adj_p = lm_results$int_Pvalue*(ncol(dt)-2)*(ncol(dt)-3)*.5
+# # lm_results$adj_int_Pvalue = lm_results$int_Pvalue*(0.5*ncol(geno)*(ncol(geno)-1))
+# write.csv(lm_results,paste0(dirOut,"/lm_results",t,".csv"),row.names = F)
+
+```
+
+
+
+
+
