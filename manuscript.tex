@@ -117,25 +117,6 @@
   state={WA},
   country={Australia}}
 
-
-%% \fntext[label3]{}
-
-%% use optional labels to link authors explicitly to addresses:
-%% \author[label1,label2]{}
-%% \affiliation[label1]{organization={},
-%%             addressline={},
-%%             city={},
-%%             postcode={},
-%%             state={},
-%%             country={}}
-%%
-%% \affiliation[label2]{organization={},
-%%             addressline={},
-%%             city={},
-%%             postcode={},
-%%             state={},
-%%             country={}}
-
 \author{Rob Dunne} %% Author name
 \affiliation{organization={Data61, CSIRO},%Department and Organization
   addressline={13 Garden Street}, 
@@ -180,11 +161,6 @@ Epistatic interactions can play an important role in the genetic mechanisms that
   traits tested.
 \end{abstract}
 
-% %%Graphical abstract
-% \begin{graphicalabstract}
-% %\includegraphics{grabs}
-% \end{graphicalabstract}
-
 %%Research highlights
 \begin{highlights}
 \item Research highlight 1
@@ -194,151 +170,10 @@ Epistatic interactions can play an important role in the genetic mechanisms that
 %% Keywords
 \begin{keyword}
 Epistatic interactions \sep  Random Forests \sep SNP data
-  
-%% keywords here, in the form: keyword \sep keyword
-
-%% PACS codes here, in the form: \PACS code \sep code
-
-%% MSC codes here, in the form: \MSC code \sep code
-%% or \MSC[2008] code \sep code (2000 is the default)
-
 \end{keyword}
 
 \end{frontmatter}
 
-
-%% Use a table environment to create tables.
-%% Refer following link for more details.
-%% https://en.wikibooks.org/wiki/LaTeX/Tables
-%\begin{table}[t]%% placement specifier
-%% Use tabular environment to tag the tabular data.
-%% https://en.wikibooks.org/wiki/LaTeX/Tables#The_tabular_environment
-%\centering%% For centre alignment of tabular.
-%\begin{tabular}{l c r}%% Table column specifiers
-%% Tabular cells are separated by &
-%  1 & 2 & 3 \\ %% A tabular row ends with \\
-%  4 & 5 & 6 \\
-%  7 & 8 & 9 \\
-%\end{tabular}
-%% Use \caption command for table caption and label.
-%\caption{Table Caption}\label{fig1}
-%\end{table}
-
-
-%% Use figure environment to create figures
-%% Refer following link for more details.
-%% https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
-%\begin{figure}[t]%% placement specifier
-%% Use \includegraphics command to insert graphic files. Place graphics files in 
-%% working directory.
-%\centering%% For centre alignment of image.
-%\includegraphics{example-image-a}
-%% Use \caption command for figure caption and label.
-%\caption{Figure Caption}\label{fig1}
-%% https://en.wikibooks.org/wiki/LaTeX/Importing_Graphics#Importing_external_graphics
-%\end{figure}
-
-
-
-%% For citations use: 
-%%       \cite{<label>} ==> [1]
-
-%%
-%%Example citation, See \cite{lamport94}.
-
-%% If you have bib database file and want bibtex to generate the
-%% bibitems, please use
-%%
-%%  \bibliographystyle{elsarticle-num} 
-%%  \bibliography{<your bibdatabase>}
-
-%% else use the following coding to input the bibitems directly in the
-%% TeX file.
-
-%% Refer following link for more details about bibliography and citations.
-%% https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
-
-
-%\endinput
-%%
-%% End of file `elsarticle-template-num.tex'.
-
-%\onecolumn % for one column layouts
-
-%\usepackage{showframe}
-
-
-
-%\theoremstyle{thmstyleone}%
-%\newtheorem{theorem}{Theorem}%  meant for continuous numbers
-%%\newtheorem{theorem}{Theorem}[section]% meant for sectionwise numbers
-%% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
-%\newtheorem{proposition}[theorem]{Proposition}%
-%%\newtheorem{proposition}{Proposition}% to get separate numbers for theorem and proposition etc.
-%\theoremstyle{thmstyletwo}%
-%\newtheorem{example}{Example}%
-%\newtheorem{remark}{Remark}%
-%\theoremstyle{thmstylethree}%
-%\newtheorem{definition}{Definition}
-
-%\usepackage{capton}
-%\usepackage{natbib}
-%\usepackage[backend=biber,style=apa,defernumbers=true]{biblatex}
-%\addbibresource{./manuscript.bib}
-%\journal{Nuclear Physics B}
-
-%\begin{document}
-
-%\journaltitle{Briefings in Bioinformatics}
-%\DOI{DOI HERE}
-%\copyrightyear{2019}
-%\pubyear{2019}
-%\access{Advance Access Publication Date: Day Month Year}
-%\appnotes{Paper}
-
-%\firstpage{1}
-
-%\subtitle{Subject Section}
-
-%\corresp[$\ast$]{Corresponding author. \href{email:hawlader.almamun@data61.csiro.au}{hawlader.almamun@.csiro.au}}
-
-%\received{Date}{0}{Year}
-%\revised{Date}{0}{Year}
-%\accepted{Date}{0}{Year}
-
-%\editor{Associate Editor: Name}
-
-%\abstract{
-%\textbf{Motivation:} .\\
-%\textbf{Results:} .\\
-%\textbf{Availability:} .\\
-%\textbf{Contact:} \href{name@bio.com}{name@bio.com}\\
-%\textbf{Supplementary information:} Supplementary data are available at \textit{Briefings in Bioinformatics}
-%online.}
-
-% \abstract{Detecting epistatic interactions is very important because it will help us to understand the genetic mechanism
-%   on phenotypic variation. Finding epistatic interactions from high density SNP data is very challenging due to the
-%   computational burden induced by the combinatorial number of tests that have to be performed. Random Forests models were
-%   widely used in a variety of disciplines including epistatic interactions. Although Random Forests models account for
-%   variable interactions, it does not explicitly detect variable interactions. And most of the Random Forests based
-%   methods to detect interactions relay on some kind of variable importance measures that suffer when the interacting
-%   variables have very small or no marginal effects. We proposed a Random Forests based method that is not based on
-%   variable importance and can find epistatic interactions from high density SNP markers in reasonable time. The proposed
-%   method was first applied on several simulation datasets representing different data structures with respect to SNP
-%   markers and heritibilities. Once the method was validated for finding epistatic interactions from simulated SNP data,
-%   it was applied on two different traits (case-control data rheumatoid arthritis, and quantitative traits of mouse body
-%   weight) in human and mouse, respectively. In both cases, the method identified several genes closely positioned to the
-%   interacting SNPs that potentially have effects on the respective traits.}  \keywords{Epistatic interactions, Random
-%   Forest, SNP data}
-
-% \boxedtext{
-% \begin{itemize}
-% \item Key boxed text here.
-% \item Key boxed text here.
-% \item Key boxed text here.
-% \end{itemize}}
-
-%\maketitle : Missing \endcsname inserted.
 
 \linenumbers
 \section{Introduction}
@@ -359,24 +194,6 @@ targeted and nuanced interventions to be developed. For example, being able to e
 interactions could potentially be exploited to improve the genetic predictions \cite[]{Ansarifar.et.al.2020} for
 economically important traits such as wheat yield or carcass weight of cattle.
 
-
-
-% The most direct approach to detect epistatic interactions is to evaluate pair-wise linear models (LM) for all
-% possible locus pairs (usually SNP pairs) to test for non-additive interactions associated with a complex trait
-% \cite[]{Zhang.et.al.2008}. This type of exhaustive search is only feasible when the number of candidate SNPs is
-% relatively small. However, as the number of SNP markers in a dataset grows, this approach suffers from the computational
-% burden induced by the combinatorial number of tests that have to be performed. For example, The Welcome Trust Case
-% Control studies \cite[]{burtonGenomewideAssociationStudy2007brief} has 17,000 individuals (2,000 cases for each of the
-% seven diseases and 3,000 combined controls) genotyped with the GeneChip 500K Mapping Array Set (Affymetrix chip), which
-% interrogates 500,568 SNPs. Thus more than $1.25\times 10^{13}$ pairwise tests would need to be performed, which is not
-% computationally feasible. Moreover, recent technological advancements and reduced costs have led to experimental designs
-% utilising more than 1 million SNP markers for hundreds of individuals, which massively confound the ability to identify
-% interacting pairs of SNPs \cite[]{Ha.et.al2014, Gholami.et.el2014,1000GenomeProject.2015.brief,utah.edu}. Consequently,
-% two step-based methods have been proposed to detect epistatic interactions from genomic data, where in the first step
-% SNPs are pre-selected or weighted and then in the second step interaction testing is performed on the pre-selected SNPs
-% only. The preselection can be performed based on statistical tests (e.g., GWAS \cite[]{Pecanka.et.al.2017}) or machine
-% learning methods with feature selection \cite[]{Jiang.et.al.2009, Meng.et.al.2007}.
-
 The most direct approach to detect epistatic interactions is to use linear models (LM) to evaluate all pair-wise loci
 combinations to test for non-additive interactions associated with a complex trait \cite[]{Zhang.et.al.2008}. This type
 of exhaustive search is only feasible when the number of candidate markers is relatively small or the computational
@@ -395,16 +212,6 @@ performed based on statistical tests (e.g., GWAS \cite[]{Pecanka.et.al.2017}) or
 selection \cite[]{Jiang.et.al.2009, Meng.et.al.2007}.
 
 
-
-% Random Forests are an ensemble learning method first proposed by Leo Breiman \cite[]{Breiman2001}. Ensemble learning
-% combines multiple learning algorithms/models to improve prediction or classification performance beyond what could be
-% obtained from the constituent models.  In a Random Forests, \textit{m} random samples (with replacement) are selected by
-% bootstrap sampling. Then multiple decision trees are created based on the bootstrap samples. To break
-% down the correlation between features, only a random subset of features is considered at any node of the tree building
-% process. For classification problems, the class of the validation data is predicted based on majority voting and for the
-% regression problem, the model outputs the mean of the individual trees prediction. There are two main parameters in the
-% implementation of Random Forests algorithm namely the number of decision trees (\texttt{num.trees}) and the number of
-% randomly selected features (\texttt{mtry}) from which the best split is selected at any given node.
 
 
 Random Forests (RF) algorithms are an ensemble learning method first proposed by Leo Breiman \cite[]{Breiman2001}. Ensemble
@@ -444,13 +251,6 @@ To overcome the challenge of a large number of pairwise SNP interaction tests, w
 based on our observations from using a Random Forests approach. Using simulation data, we observed that \textit{``if two SNPs are
 interacting, they appear as parent-child nodes in a decision tree of a Random Forests more frequently than if they are
 not interacting''}.
-
-% This observation was used to narrow down the vast search space of pairwise tests to detect SNP
-% interactions. First, we built a Random Forests and for each pair of SNPs we count the total number of times any SNP pair
-% occurred as parent-child nodes in this forest. Then we selected only the SNP pairs that occurred more times that would
-% be expected by chance and exceeded a set threshold of \textit{t}. In our study, we selected all the SNP pairs those have
-% at least two (\textit{t}=2) appearance as parent-child nodes in the decision trees of the Random Forests.  Finally, using
-% a linear model, each selected SNP pair was tested to determine whether the interaction was significant.
 
 This new method and the validation results obtained using simulated data are presented in this manuscript. In
 addition, the results from the use of the method using two real datasets are discussed.
@@ -602,20 +402,6 @@ Total  & 4,463,660,370 & 4,463,660,257 & 113 \\
   \end{center}
 \end{figure}
 
-
-
-
-
-% The proposed method is described in Figure \ref{figure:RF_Method}. First, a Random Forests model was created using all avaiable data. Then for each pair 
-% of SNP, how many times they appeared as parent-child node in each of the decision trees were recorded. Then the SNP pairs were ranked based on
-% the count and only the pairs having count >= 2 were retained. Finally, using the linier equation the interaction term was tested. In our
-% studies, we used the ranger R package \cite[]{Wright.and.Ziegler.2017} and we selected \texttt{num.tree} = 1000 and \texttt{mtry} =
-% \#SNPs/3.
-% For a linear model, an interaction occurs when an independent variable has a different effect on the outcome depending
-% on the values of another independent variable. So our variables in the model can be divided between main effects and
-% interaction effects. A multiplicative epistasis model was used, where the interaction between two SNPs, $i$ and $j$,  were modelled as the
-% product of the two genotype values, using the following linear regression model:
-
 Then the marker pairs were ranked based on the count and only the pairs having count
 more than 2 were retained. A threshold of at least two ($t = 2$) appearances as parent-child nodes in the decision trees
 of the Random Forests was used because the use of one ($t = 1$) resulted in a substantially higher number of SNP pairs,
@@ -636,13 +422,6 @@ $\beta_0$ is the mean phenotype, and  $\{\beta_i, \beta_j\}$ are the marginal ef
 is the interaction effect between SNP $i$  and  $j$, and $\epsilon$ is the residual with $N(0,1)$. For case-control disease data, the interaction was modelled
 through a logit function as follows:
 
-
-%Here $y$ is the qualitative measure of phenotype, and $x$ are the genotype values \{0, 1, 2\} for SNP $i$ and $j$
-%respectively, $\beta_0$ is the mean phenotype, and $\{\beta_i, \beta_j\}$ are the marginal effects for SNP $i$ and $j$,
-%$\beta_{i,j}$ is the interaction effect between SNP $i$ and $j$, and $\epsilon$ is the residual with N(0,1).  For
-%case-control disease data, the interaction was modelled through a logit function as follows:
-
-
 \begin{equation}
   \logit (P(y =1)) =  \beta_0 + \beta_i x_i +  \beta_j x_j + \beta_{i,j} x_ix_j + \epsilon,
   \label{eqn:logitmodel}
@@ -662,25 +441,6 @@ where '1' is the disease state and '0' is the control state.  An interaction is 
 \end{figure}
 
 \subsection{Simulation data}
-% We considered two-way interactions between two SNPs based on three interaction models. In the ``base model'' neither the
-%  SNPs nor their interaction have any effect on the phenotype; in the interaction only model both SNP have no marginal
-% effects but have interaction effect, and in the ``no interaction'' model both SNPs have their marginal effect but there is
-% no additional interaction effect. We used publicly available genotype data of 3,534 animals from a single PIC nucleus
-% pig line genotyped using the Illumina ProcineSNP60 chip \cite[]{clevelandCommonDatasetGenomic2012}.
-
-% The original dataset contained 52,843 SNPs, but in our studies, the non-informative SNPs were removed leaving 48,015
-% SNPs. From these genotype data, the simulated data was created by randomly selecting 5,000, 10,000 and 48,000
-% SNPs. Using these genotypes, simulated phenotypes were then created having different heritabilities (h2 = 0.33, 0.50,
-% 0.66 and 1.00). Data were generated using 3 different models:
-% \begin{itemize}
-% \item \textbf{Base model} phenotype = sum of ten QTL effects + noise (depending on heritability);
-% \item \textbf{no-interaction model} we added the effect of another 6 SNPs marginal effects on the top of 10 QTL
-%   effects, but there were no interaction effects between these 3 SNP pairs. phenotype = sum of ten QTL effects + sum of
-%   marginal effect of epistatic SNPs + noise (depending on heritability);
-% \item \textbf{interaction model} where phenotypes were the sum of 10 QTL effects plus pairwise interaction effects of
-%   the 6 SNPs. phenotype = sum of ten QTL effects + sum of interaction effect + noise (depending on
-%   heritability).
-% \end{itemize}
 
 Three different interaction scenarios were considered to access the performance of the proposed method in detecting
 pairwise interactions.  A simulated dataset was generated using publicly available genotype data containing of 3,534
@@ -722,35 +482,10 @@ The second real data set we used was published by \cite{solbergProtocolHighthrou
 individuals. Pre-corrected residuals of thirteen phenotypes were available as phenotypes. In the current analysis, the
 phenotype ``weight at six weeks'' (W6W) was used.
 
-% \subsection{The Proposed Method -- count co-occurrences}
-% To overcome the challenge of a large number of pairwise interaction tests, we proposed an effective two-step process
-% based on our observations from using Random Forests. Using different simulation data, we observed that ``if two SNPs are
-% interacting, they appear as parent-child nodes in a decision tree of a Random Forests more frequently than if they are
-% not interacting''.  So, we utilised this observation to narrow down the vast search space of pairwise tests to detect
-% interactions. First, we build a Random Forests and for each pair of SNPs we count the total number of times any SNP pair
-% occurred as parent-child nodes in this forest. Then we select only the SNP pairs that occur more times that would be
-% expected by chance and exceed the set threshold. Finally, using a linear model, each selected SNP pair is tested to see
-% if the interaction is significant.
 
 
 \section{Results and Discussion}
 \subsection{Simulated data}
-% Based on publicly available pig genotype data, simulated phenotypes using different scenarios with various combinations
-% of number of SNPs, number of interacting SNP pairs, heritability, QTL effect size and interaction effect size were used.
-% The performance of the method was assessed based on the proportion of time the method selected the interacting SNP
-% pairs for pairwise interaction tests. Table \ref{table:ranking10qtl} shows the importance ranking of three interacting
-% SNP pairs based on the number of times they appear as parent-child in the Random Forests decision trees. Higher ranking,
-% represented by a smaller number, means a higher count. For example, a value of 1 for pair P3 means that SNP pair 3
-% appeared as parent-child more than any other SNP pair in that Random Forests. Since in the base model three pairs of
-% interacting SNPs do not have any marginal effects or any interaction effects, they did not appear as parent-child in any
-% decision tree of the Random Forests. In the no interaction model, the three interacting SNP pairs appeared as
-% parent-child in some of the scenarios. This is because in the no interaction model, although the three pairs do not
-% have any interaction effect, they have their own marginal effects. Hence, they were selected at different nodes of the
-% decision trees. For the interaction model, rankings of the three interacting SNP pairs are relatively higher than the
-% other two models. This ranking table demonstrates that if we rank the SNP pairs based on the count of their appearance
-% as parent-child, we only need to test pairwise interaction for a small amount of SNP pairs from the vast number of total
-% possible combinations of SNP.
-
 The method's performance was assessed by determining the number of interactions that were correctly identified and
 through evaluating the repeatability and false discovery rate for the approach.  The evaluation of the method's ability
 to correctly identify interacting markers was assessed based on the proportion of times, the method selected the
@@ -818,22 +553,7 @@ Num SNP  & H2     &   \multicolumn{3}{|c|}{Base Model}&    \multicolumn{3}{|c|}{
 \end{table}
 
 
-
-% In the proposed two step method for detecting SNP-SNP interactions, a random forests model was built and the count
-% determined for how many times a given pair of SNPs appears as parent-child. In the second step, only those SNP pairs
-% having the counts higher than a certain number t were tested. In this simulation, we set t = 2, meaning that if any of
-% the SNP pairs appeared as parent-child in the decision trees of the Random Forests for at least 2 times, we selected them
-% to test for pairwise interaction using Equation 1. The third column of Table
-% \ref{table:Number.of.tests.performed.to.detect.interactions} shows the number of pair-wise interaction tests performed
-% with the interaction model for different combinations of heritability and number of SNPs. The fourth column of Table
-% \ref{table:Number.of.tests.performed.to.detect.interactions} shows the number of possible pairwise tests for a given
-% number of SNPs. From the last column of the Table \ref{table:Number.of.tests.performed.to.detect.interactions} we can
-% see that, using our method we were able to narrow down the search space of pairwise test significantly. For all
-% scenarios, less than one percentage of SNP pairs were tested for interaction.
-
-
-
- \begin{table}
+\begin{table}
 \begin{center}
 	\begin{tabular}{|c|c|p{1.6cm}|p{1.6cm}|p{1.6cm}|}
  \hline
@@ -861,16 +581,6 @@ Num SNP  & H2     &   \multicolumn{3}{|c|}{Base Model}&    \multicolumn{3}{|c|}{
 \end{table}
 
 
-% \subsection{Effect of heritability and interactions p-value on the proposed method to detect candidate SNP pairs}
-% Figure \ref{figure:Eff_Trait_h2_simulated_data.png} shows the pairwise counts for each of the interacting SNP pairs in
-% each Random Forests at different heritabilities (h = 0.33, 0.50, 0.66, and 1.00) for 10,000 SNP with 10 QTL and 3 pairs
-% of interacting SNPs. At low heritability, the pairwise count is smaller and as heritability increases, the pairwise
-% count also increases. Although the three interacting SNP pairs have very similar interaction effects (ranged between 0.3
-% to 0.4), they have very different numbers of counts. There is a direct relationship between the $p$-value of the
-% interaction term with the pairwise count. Lower $p$-values of the interaction terms have higher pairwise count
-% (correlation coefficient = 0.84). This is particularly interesting as even very small interaction effects with high
-% significance will not be overlooked because of higher pairwise count.
-
 \subsection{Heritability}
 
 The effect of heritability on the method's performance was explored with the pairwise counts for each of the
@@ -897,12 +607,6 @@ The Y- axis shows the number of pairwise counts for each interacting SNP pair in
 
 
 \subsection{Repeatability and false discovery rate}
-% To test repeatability of our proposed method, we ran the process at different heritabilities (0.75, 0.66, 0.50, 0.33,
-% and 0.25) with ten repeats for each heritability. We evaluated the performance of the process based on how many times it
-% was successful to select any interacting SNP pair. Table \ref{table:Repeatability_of_the_proposed_method} shows the
-% results for 10,000 SNPs with 10 QTLs and 3 pairs of interacting SNPs. In most of the scenarios tested, the method was
-% able to successfully select the interacting SNP pairs except for interacting pair one at low heritability.  This is
-% expected as at low heritability, there was more noise induced in the data.
 
 To test repeatability of the proposed method, the ``Interaction model'' was generated ten times at each heritability
 (0.25, 0.33, 0.50, 0.66, and 0.75) with the correct identification of the interacting marker pairs assessed. Table
@@ -925,23 +629,6 @@ explained by the marker data (genetic signal) increases at higher heritabilities
 
 The number of false positives detected by the proposed method was low across all heritabilities.
 
-% \begin{table}
-% \begin{center}
-%   \begin{tabular}{|cccc|}
-%     \hline
-%     &P& P2& P\\
-%     H2=0.75&10& 10& 10\\
-%     H2=0.66&10& 10& 10\\
-%     H2=0.50&9&10 &10\\
-%     H2=0.33&7&10 &10\\
-%     H2=0.25&4&10 &10\\
-%     \hline          
-%   \end{tabular}
-% \end{center}
-% \caption{Repeatability of the proposed method. The data contains 10,000 with 10 QTLS and 3 pairs of interacting SNP. The
-%   process was repeated 10 times for each heritability times for each heritability.}
-% \label{table:Repeatability_of_the_proposed_method}
-% \end{table}
 
 \begin{table}
   \begin{center}
@@ -966,107 +653,11 @@ The number of false positives detected by the proposed method was low across all
 
 
 \section{Results for real datasets}
-% Once the method demonstrated that pairwise SNP-SNP interactions could be identified in the simulated data, we then applied
-% the method to two different real datasets.
-
 To evaluate the method's performance on real data, two real datasets were assessed for the presence of interacting SNP
 pairs.
 
 
 \subsubsection{Rheumatoid arthritis data}
-% After pre-processing and filtering, the RA dataset contained 94,486 SNPs (~4.46 billion possible pairwise interaction
-% tests) and 4,798 individuals.  Using Random Forests, we have selected only 654 SNP pairs (out of more than 4.46 billion
-% possible pairs) for pairwise interaction tests (Equation 2). Among the 654 SNP pairs, 26 pairs have significant
-% Bonferroni corrected interaction $p$-values ($p < 0.05$). In detail, 24 SNPs were involved in 26 significant interactions
-% among which 22 SNPs were from chromosome 6 and two other from chromosome 1 and chromosome 7. Furthermore, several SNPs
-% from chromosome 6 were involved in multiple interactions. All the 22 SNPs in chromosome 6 are in the HLA (human
-% leukocyte antigen) region spanning from 31.35 MB to 32.80 MB. The HLA region in human genome is known to contain very
-% high linkage disequilibrium (LD). If interacting SNP pairs are in the same haplotype or LD block, the significant
-% interaction between the pairs might be a haplotype effect on RA, rather than true interaction. Out of 26 pairs of
-% interacting SNPs, 12 pairs (all are in chromosome 6) have moderate to high LD (D’ = (0.26 to 0.55)) between the
-% pairs. Hence, we retained only 14 SNP pairs which has low LD (D’ $\leq$ 0.2).
-
-% Table 10 lists 14 interacting SNP pairs that are associated with rheumatoid arthritis in humans. Genes
-% containing any of the interacting SNPs as well as flanking genes for intergenic SNP are also listed. All 14 significant
-% SNP pair interactions had at least one SNP of each pair positioned in the major histocompatibility complex (MHC) class
-% II centred on the HLA-DQ to HLA-DR regions located in chromosome 6p21. The HLA region in human chromosome is a 3.78 Mb
-% region that is the most gene dense region withing the human genome encoding about 253 genes including several key immune
-% response genes \cite[]{shiinaHLAGenomicLoci2009}. The genes in this region predominantly have immune response
-% functions. The dominance of the HLA-DQ to HLA-DR region in the interacting SNPs may be due to several factors including
-% the clustering of genes with key roles in immune response and its regulation, high gene density including some
-% overlapping and anti-sense genes, and a high rate of polymorphism and therefore high linkage disequilibrium. After
-% filtering of the SNP pairs for LD less than xx, eight SNP pairs remained. This result suggests that the dominance of the
-% identified SNP interactions in this subregion of the MHC class II region reflects strong association of SNPs with the
-% rheumatoid arthritis phenotype and not a consequence of the relatively high level of LD in the broader region. Hence,
-% all 14 SNP pair interactions were retained for subsequent analyses of gene and potentially SNP functions. Future fine
-% mapping of this region in chromosome 6p21 to localise causal SNP interaction pairs associated with rheumatoid arthritis
-% is likely to be difficult due to the reasons listed above. Therefore, other approaches are required to understand the
-% abundance of interactive SNPs in this subregion of the MHC class II region that are associated with rheumatoid
-% arthritis.  The normal function of the MHC class II cell surface receptors encoded by the HLA-DQ and HLA-DR genes is to
-% bind and present foreign antigens to T-cells, which then proliferate and signal to B-cells to produce antibodies against
-% potential threats. The antigens can be foreign and self-antigens. In the latter instance, immune tolerance to
-% self-antigens is normally developed at a very young age. Thus, activation of the MHC class II receptors can elicit or
-% suppress T-(helper)-cell responses. In some autoimmune conditions, however, self-antigens activate T-cells and generate
-% an inappropriate immune response resulting in chronic inflammation. The HLA-DQ and HLA-DR genes and genes within the
-% wider MHC class II region are associated with a variety of inflammatory autoimmune diseases including rheumatoid
-% arthritis, type 1 diabetes, systemic sclerosis, psoriasis, amkylosing spondylitis, systemic lupus erythematosus, Crohn’s
-% disease, dermatomyositis and Graves’ \cite{Kennedy.et.al.2017};
-% \cite{liuGenomewideScreenGenegene2011}; \cite{matzarakiMHCLocusGenetic2017}.
-
-% The current investigation has identified 14 pairs of interacting SNPs in the HLA-DQ - HLA-DR region on chromosome
-% 6p21. This finding suggests extensive cis-acting positive and negative interactions between SNPs in this region and
-% hence potential for positive and negative interactions between genes in this gene-dense region. How these interactions
-% occur is unclear. The identified SNPs may simply be genetic markers of closely linked causal genetic variants. However,
-% it is also possible that some of the interacting SNPs may be causal. None of the unique SNPs are present in gene coding
-% sequences, 6 are intronic and 14 are intergenic. Examination of the UCSC human genome (hg38 assembly) browser 
-% and its Regulation tracks for this region identified several of the interacting SNPs located
-% within potential long range gene regulatory elements defined by a variety signatures (i.e.,
-% \begin{itemize}
-% \item rs2734573, H3K4me1 and H3K27Ac (ENCODE Regulation track);
-% \item rs9296009, distal enhancer-like signature (enhD) (ENCODE Cis Regulatory Elements track);
-% \item   rs427037, enhD; rs910050, enhD; rs9268831, enhD;
-%   \item rs615672, regulatory elements and gene-gene interactions (GeneHancer Regulatory Elements and Gene Interactions
-%     track);
-%   \item rs9273363, transcription factor cluster and H3K4me1
-% (ENCODE Transcription Factor ChIP-seq Clusters track and ENCODE Regulation track, respectively)
-% \end{itemize}
-
-% % rs2734573, H3K4me1 and
-% % H3K27Ac (ENCODE Regulation track); rs9296009, distal enhancer-like signature (enhD) (ENCODE Cis Regulatory Elements
-% % track); rs427037, enhD; rs910050, enhD; rs9268831, enhD; rs615672, regulatory elements and gene-gene interactions
-% % (GeneHancer Regulatory Elements and Gene Interactions track); rs9273363, transcription factor cluster and H3K4me1
-% % (ENCODE Transcription Factor ChIP-seq Clusters track and ENCODE Regulation track, respectively).
-
-% Two pairs of interactive SNP (rs615672/rs9268831 and rs92688831/rs615672) contained both interactive SNP in potential
-% genome regulatory elements. Collectively, this information suggests that local gene-gene interactions in this region
-% could be mediated by cis-acting regulatory mechanisms involving short and long range DNA loops. Some of identified
-% interactive SNPs were located near or within introns of genes unrelated to the HLA-DQ and HLA-DR genes but interspersed
-% within the same region on chromosome 6p21. These genes included NOTCH4 (notch receptor 4), TNXB (tenascin XB) and BTNL2
-% (butryophilin-like 2). NOTCH4 regulates cell fate determination, proliferation and apoptosis programs and has a
-% regulatory role in branching morphogenesis in the developing vascular system. It is also implicated in the regulation of
-% inflammation \cite{Harb.et.el.2020}\cite{Zheng.et.el.2018}, a characteristic feature of autoimmune diseases such as
-% rheumatoid arthritis. TNXB (tenascin XB) encodes a tenascin family member of extracellular matrix proteins. It has
-% anti-adhesive effects and is involved in extracellular matrix maturation following wound healing \cite{GeneCards}. Thus,
-% the protein encoded by TNXB may potentially be involved in tissue repair after damage caused by chronic
-% inflammation. BTNL2 belongs to a family of immune regulators. It decreases T-cell proliferation and cytokine release
-% during an inflammatory response and has been implicated in a number autoimmune diseases
-% \cite{arnettBTNL2ButyrophilinB7Like2007}; \cite{GeneCards};
-% % Arnett et al., 2007; "GeneCards - Human Genes | Gene Database | GeneSearch," ;
-% \cite{lebrero-fernandezAlteredExpressionButyrophilin2016}. The SNP interaction partner to the SNP identified in BTNL2 on
-% 6p21 is located near NRF1 (nuclear respiratory facto 1) on chromosome 7. NRF1 encodes a transcription factor activating
-% key metabolic and cell growth genes as well as mitochondrial DNA transcription and replication. NRF1 has also been
-% implicated in the regulation of inflammation, \cite{GeneCards}; \cite{vantienenProlongedNrf1Overexpression2010};
-% \cite{yangNglycanaseNGLY1Regulates2018}. One possibility is that NRF1 acts in trans directly or indirectly via its
-% encoded transcription factor to regulate BTNL2 expression on chromosome 6p21 and thus modulate T-cell mediated immune
-% activation and inflammation.
-
-% Notably, multiple genome wide association studies (GWAS) identified some of the interactive SNPs as associated with
-% various autoimmune diseases i.e., rs9273363, rheumatoid arthritis; type 1 diabetes; rs6457617, multiple sclerosis,
-% Graves disease, systemic sclerosis; rs615672, rheumatoid arthritis ("UCSC Genome Browser Home,").
-
-
-
-
 After pre-processing and filtering, the Rheumatoid arthritis (RA) dataset contained 94,486 SNPs (4.46 billion possible
 pairwise interaction tests) and 4,798 individuals. The method, after building a Random Forests analysis, selected only
 654 SNP pairs for the second stage of testing to identify significant pairwise interactions (Equation \ref{eqn:logitmodel}). Among the
@@ -1184,13 +775,6 @@ rs206015:rs3134926        & 0.06 & 0.00 & 6:32214982  & 1.49 & 1.33,1.67 & 2.90E
 
 
 \subsection{Mouse  data}
-% As the curated mouse data contains 9,265 SNPs there were nearly 43 million possible pairwise comparisons to test for 
-% interactions. Using our method, 273,391 pairs of SNP (~0.0064\%) were tested for interactions. The approach identified 
-% 59 pairs of interacting SNPs after multiple testing using the Bonferroni correction. These 59 pairs of interactions were 
-% from 63 unique SNPs mainly located on MMU chromosomes 2, 8 and 13. We then identified the genes associated with each of 
-% these SNPs using the Mouse Genome Informatics \cite[]{mgi}.
-
-
 The curated mouse data contained 9,265 SNPs resulting in nearly 43 million possible pairwise comparisons to test for the
 presence of significant interactions contributing to the phenotype ``weight at 6 weeks''. The proposed method, identified
 273,391 pairs of SNP (0.0064\%) for the second stage of interaction testing. After using the Bonferroni multiple testing
@@ -1241,74 +825,8 @@ and that the proposed method is able to identify multiple promising regions for 
 exploration.
 
 
-% \subsection{Gene functions potentially affected by interacting SNPs}
-% Supplementary Table S2 lists significant interacting pairs of SNPs that are associated with murine growth traits. The
-% nearest genes (mean distance = 36.7 Kbp; range = 42 bp – 286 Kbp) associated with these SNPs are also listed. The
-% associated MGI ID (Mouse Genome Informatics ID), Entrez ID and GO terms (Gene Ontology) are listed in Supplementary
-% Table S3. Using GSEA (C1 positional gene sets; \cite{Liberzon.et.al.2011}), genes with official gene symbols from Table
-% S2 were enriched at two human cytogenic bands equivalent to two syntenic murine cytogenetic band locations (mmu Chr8qA2,
-% FDR q = 1.5E-4, Tm2d2, Tacc1, Slc20a2, Fgfr1; mmu Chr2qA3-2qB boundary, FDR q = 8.2E-3, Mrps2, Ralgds, Ddx31, Ttf1).
-
-% The four genes located in mmu Chr8qA2 and two functionally anonymous genes (miR8108 and Gm31784) associated with two
-% additional SNPs are all present in a 3.8 Mbp interval. Tm2d2, Tacc1 and Fgfr1 are contained within a small region of
-% ~0.5 Mbp of this larger segment. The microRNA miR8108 is located within an intron of Tacc1 and Gm31784 is a poorly
-% defined ncRNA located 0.8 Mbp downstream of Fgfr1. Using syntenic human genes to the murine genes near all significant
-% SNPs in conjunction with the GSEA CGP database, there was enrichment (q = 2.1E-4) for TM2D2, TACC1, SLC20A2, FGFR1 in
-% the Nikolsky Breast Cancer dataset for genes in an amplicon from the human 8p12\_P11 chromosomal region susceptible to
-% copy number variation (CNV) in breast cancer samples.  Thus, while the six SNPs in the mmu Chr8qA2 region likely reflect
-% SNPs in linkage disequilibrium, another possibility is that the identified SNPs could be contained within or near a CNV
-% in this chromosomal region. Notably, a 96,111 bp CNV (1810011O10Rik) has been reported in this region in some mouse
-% strains, although it only incorporates Fgf1 \cite{lockeGenomicCopyNumber2015}. 
-
-% The four identified and well characterised genes in the mmu Chr8qA2 region have a variety of functions that potentially impact a phenotype associated
-% with growth and development. Fgfr1 (fibroblast growth factor receptor 1) has wide ranging biological functions
-% associated with regulation of cell division, cell growth and maturation, embryonic development, wound healing, and
-% formation of blood vessels. In humans, the cellular signalling mediated by this receptor has roles in the development
-% and growth of bones, particularly bones in the head, face, hand, feet, and long bones of the arms and legs.  Mutations
-% in the gene are associated with human dwarfism (Genetics Home Reference, NIH US National Library of Medicine
-% \cite[]{medline}. Tacc1 (transforming acidic coiled-coil containing protein 1) is involved in processes
-% that promote cell division before the formation of differentiated tissues \cite{GeneCards}. Tacc1 encodes a protein that
-% regulates the localization of nuclear receptors, including T3 thyroid hormone and retinoic pathways involved in
-% regulation cell growth and differentiation. Tm2d2 (TM2 domain containing 2) encodes a G-coupled receptor that regulates
-% cell death and proliferation cascades \cite{GeneCards}. Slc20a2 (solute carrier family 20 member 2) encodes an inorganic
-% phosphate transporter important in maintaining phosphate homeostasis. This function is essential for all intracellular
-% function. The encoded protein also has roles in extracellular matrix and cartilage calcification, which is important for
-% tissue function \cite{GeneCards}. It is noted that growing bones have high demands for phosphate
-% \cite{Goretti.et.el.2012}. 
-
-% The four genes enriched in a localised 0.25 Mbp region on the mmu chr 2qA3-2qB boundary
-% (Mrps2 (mammalian mitochondrial ribosomal protein), Ralgds (ral guanine nucleotide dissociation stimulator), Ddx31
-% (dead-box helicase 31), Ttf1 (transcription termination factor 1) have a variety of functions \cite{GeneCards} including
-% mitochondrial protein synthesis, intracellular signalling, cell growth and division in embryogenesis, and transcription,
-% respectively. At present, only Ddx31 is directly linked to growth related traits, although the molecular functions of
-% the remaining three genes may have this potential. 
-
-% The remaining genes listed in Tables S2 and S3 map to various
-% chromosomal regions. Notable gene functions or mutational effects that could influence growth traits include: regulation
-% of cell proliferation, differentiation and survival (Klf7, Kruppel like factor 7); osteogenesis (Stmn2, Stathmin 2);
-% short stature and skeletal abnormalities (Wipi2, WD40 repeat protein interacting with phosphoinositides 2); increased
-% blood testosterone, precocious sexual maturation, increased fecundity, and clearance of luteinizing hormone (Chst8,
-% carbohydrate sulfo-transferase 8) \cite{GeneCards}). In all, there were several genes identified close to interacting
-% SNPs listed in Tables S2 and S3 that have effects on murine growth and developmental traits, particularly osteogenesis
-% and body stature.
-
-
 
 \section{Conclusion}
-% In this study, we proposed a simple and easy method to select candidate SNP pairs to test for interactions in large
-% genomic data. We used a Random Forests algorithm to select a subset of SNP pairs from a vast search space so that the
-% selected SNP pairs can be tested for interaction in a reasonable computational time. The method was validated with
-% several simulation datasets representing different data structures (with respect to SNP marker density and
-% heritabilities). We then used the method to identify SNP interactions for two different traits (case-control data
-% rheumatoid arthritis, and quantitative traits of mouse body weight) in human and mouse, respectively. In both cases, the
-% method identified several genes closely positioned to the interacting SNPs that potentially have effects on the
-% respective traits. Although the approach requires further biological validation, candidate SNP pair markers identified
-% by this method will provide valuable information and a genetic basis for understanding a complex trait that is the
-% result of effects from multiple genes and their complex interactions. We only used SNP data to demonstrate our proposed
-% method. However, the method is equally applicable when the datasets contain both SNP data and environmental data.
-
-
-
 
 In this study, a novel efficient method to identify potentially interacting pairs of markers in genomic data for a
 specific trait was proposed and validated. A Random Forests decision tree algorithm was utilised to select a subset of
@@ -1335,6 +853,8 @@ Key points:
 
 
 
+%%%%%%%%%%%%%%
+\appendix
 
 \section{Data availability}
 PIC nucleus pig line genotype data is available as supporting information in Cleveland et al., 2012. WTCCC genotype data
@@ -1342,16 +862,7 @@ is available by application to the Wellcome Trust Case Control Consortium Data A
 available as Additional file 1 in \cite{martiniGenomicPredictionEpistasis2017}.
 
 
-%%%%%%%%%%%%%%
-\appendix
-
 \FloatBarrier
-\section{Section title of first appendix}
-\label{sec11}
-
-
-
-
 \section{Competing interests}
 There is NO Competing Interest.
 
@@ -1381,50 +892,4 @@ project was provided by the Wellcome Trust under award 076113.
 \end{document}
 
 
-
-
-
-% \begin{sidewaystable}
-% \begin{center}
-%   \begin{tabularx}{\textwidth}{|c|c|c|c|c|c|c|c|c|c|c|c|}
-%     \hline
-%                 SNP pair & D’         & r$^2$ & SNP1 location & \makecell{SNP1 \\$p$-value$^d$} & \makecell{SNP1 odds \\ ratio (95\% CI)$^b$} & SNP2 location & \makecell{SNP2 odds \\ ratio (95\% CI) $^b$ } & \makecell{SNP2 \\$p$-value$^d$} & \makecell{interaction Odds \\ratio (95\% CI)$^c$} & \makecell{interaction\\ $p$-value$^d$} & \makecell{Interaction \\odds ratio} \\
-% \hline
-% rs3134926:rs910050       & 0.10       & 0.01  & 6:32232370    & 0.61                            & 0.55,0.6                                    & 2.35E-20      & 6:32347877                                    & 0.79                            & 0.72,0.86                                         & 8.40E-05                               & 1.77 \\
-% rs3134926:rs4530903      & 0.14       & 0.01  & 6:32232370    & 0.61                            & 0.55,0.67                                   & 2.35E-20      & 6:32614112                                    & 1.41                            & 1.24,1.59                                         & 7.78E-05                               & 1.64 \\
-% rs9431614:rs9296009      & 0.01       & 0.00  & 1:230944623   & 1.00                            & 0.89,1.11                                   & 1             & 6:32146738                                    & 1.80                            & 1.64,1.97                                         & 2.96E-33                               & 1.62 \\
-% rs3134926:rs9391858      & 0.06       & 0.00  & 6:32232370    & 0.61                            & 0.55,0.67                                   & 2.35E-20      & 6:32373621                                    & 1.24                            & 1.11,1.39                                         & 0.07                                   & 1.55 \\
-% rs10456058:rs9273363$^a$ & 0.08       & 0.00  & 6:31526961    & 1.11                            & 1.03,1.21                                   & 1             & 6:32658495                                    & 1.34                            & 1.23,1.46                                         & 4.01E-08                               & 1.50 \\
-% rs910050:rs6457617       & 0.17       & 0.02  & 6:32347877    & 0.79                            & 0.72,0.86                                   & 8.40E-05      & 6:32696074                                    & 0.44                            & 0.4,0.48                                          & 1.25E-69                               & 1.39 \\
-% rs9268831:rs615672       & 0.15       & 0.01  & 6:32459971    & 0.69                            & 0.63,0.75                                   & 3.98E-16      & 6:32606394                                    & 0.60                            & 0.54,0.66                                         & 9.19E-24                               & 1.34 \\
-% \hline
-% \end{tabularx}
-% \end{center}
-% \caption{Eight pairs of interacting SNPs have significant odds ratio after pairwise LD evaluation}
-% \label{table:eight.pairs}
-% \begin{tablenotes}%
-% \item[$^{a}$] rs10456058 has merged into rs2734573
-% \item[$^{b}$]  Odds ratio (OR) of having at least one copy of the risk allele compared to having 0 copies of the same allele for the given SNP
-% \item[$^{c}$]  Odds ratio (OR) of having at least one copy of each risk allele compared to having 0 copies of the same allele for the given SNP pair.
-% \item[$^{d}$]  Bonferroni adjusted p-value
-% \end{tablenotes}
-% \end{sidewaystable}
-
-
-
-
-
-
-%   \begin{tabularx}{\textwidth}{|c|c|c|c|c|c|c|c|c|c|c|c|}
-%     \hline
-%                 SNP pair & D’         & r$^2$ & SNP1 location & \makecell{SNP1 \\$p$-value$^d$} & \makecell{SNP1 odds \\ ratio (95\% CI)$^b$} & SNP2 location & \makecell{SNP2 odds \\ ratio (95\% CI) $^b$ } & \makecell{SNP2 \\$p$-value$^d$} & \makecell{interaction Odds \\ratio (95\% CI)$^c$} & \makecell{interaction\\ $p$-value$^d$} & \makecell{Interaction \\odds ratio} \\
-% \hline
-%   \begin{tabular}{|c|p{1cm}|p{1cm}|p{2cm}|p{2cm}|p{1.5cm}| p{2cm}|p{2cm}|p{1.5cm}| p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
-%     \hline
-%     \hline
-%                 SNP pair & D’ & r$^2$   & SNP1 location & SNP1 odds ratio & SNP1 odds ratio (95\% CI)$^b$ & SNP1 p  value$^d$ &  SNP2 location & SNP2 odds ratio & SNP2 odds ratio (95\% CI) $^b$ & SNP2 pvalue$^d$   & Odds ratio for interaction (95\% CI) $^c$ & interaction p value $^d$   \\
-%                SNP pair & D’         & r$^2$ & SNP1 location & \makecell{SNP1 \\$p$-value$^d$} & \makecell{SNP1 odds \\ ratio (95\% CI)$^b$} & SNP2 location & \makecell{SNP2 odds \\ ratio (95\% CI) $^b$ } & \makecell{SNP2 \\$p$-value$^d$} & \makecell{interaction Odds \\ratio (95\% CI)$^c$} & \makecell{interaction\\ $p$-value$^d$} & \makecell{Interaction \\odds ratio} \\
-
-
-%\onecolumn
 
