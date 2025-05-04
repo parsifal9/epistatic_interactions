@@ -88,21 +88,25 @@
 %% use the cortext command for theassociated footnote;
 %% use the ead command for the email address,
 %% and the form \ead[url] for the home page:
-\title{Detection of Epistatic Interactions in High-Dimensional Genomic Data Using Random Forests}
+\title{Detection of Ecstatic Interactions in High-Dimensional Genomic Data Using Random Forests}
   
-\author{Hawlader A. Al-Mamun\corref{cor1}\fnref{label2}}
+\author[1,2,3]{Hawlader A. Al-Mamun\corref{cor1}}
 \ead{halmamun@intergrain.com}
-%% \ead[url]{home page}
-%% \fntext[label2]{}
+\author[4]{Rob Dunne} %% Author name
+\author[5]{Ross L. Tellam}
+\author[6]{Klara Verbyla}
+
 \cortext[cor1]{Corresponding author}
-\affiliation{organization={Agriculture \& Food, CSIRO},%Department and Organization
+
+
+\affiliation[1]{organization={Agriculture \& Food, CSIRO},%Department and Organization
   addressline={2 - 40 Clunies Ross Street}, 
   city={Acton},
   postcode={2601}, 
   state={ACT},
   country={Australia}}
 
-\affiliation{organization={InterGrain Pty Ltd.},%Department and Organization
+\affiliation[2]{organization={InterGrain Pty Ltd.},%Department and Organization
   addressline={19 Ambitious Link}, 
   city={Bibra Lake},
   postcode={6163}, 
@@ -110,23 +114,21 @@
   country={Australia}}
 
 
-\affiliation{organization={School of Biological Sciences},%Department and Organization
+\affiliation[3]{organization={School of Biological Sciences},%Department and Organization
   addressline={The University of Western Australia}, 
   city={Crawley},
   postcode={6009}, 
   state={WA},
   country={Australia}}
 
-\author{Rob Dunne} %% Author name
-\affiliation{organization={Data61, CSIRO},%Department and Organization
+\affiliation[4]{organization={Data61, CSIRO},%Department and Organization
   addressline={13 Garden Street}, 
   city={Eveleigh},
   postcode={2015}, 
   state={NSW},
   country={Australia}}
 
-\author{Ross L. Tellam}
-\affiliation{organization={CSIRO Agriculture and Food},%Department and Organization
+\affiliation[5]{organization={CSIRO Agriculture and Food},%Department and Organization
   addressline={306 Carmody Rd}, 
   city={St Lucia},
   postcode={4067}, 
@@ -134,8 +136,7 @@
   country={Australia}}
 
 
-\author{Klara Verbyla}
-\affiliation{organization={The Center for Aquaculture Technologies},%Department and Organization
+\affiliation[6]{organization={The Center for Aquaculture Technologies},%Department and Organization
   addressline={8445 Camino Santa Fe, Suite 104}, 
   city={San Diego},
   postcode={92121}, 
@@ -308,11 +309,9 @@ $I_S (j)$ is equal to 1 if $j \in  S$ and 0 otherwise. Fitting this model involv
 \lambda$ and $\theta \}$. Having estimated the parameters we choose a cutoff value $D_n$, chosen to control the false
 discovery rate, so that counts $\geq  D_n$ are reported as significant.
 
-
 Using the Rheumatoid data as an example, we have $p= 94485$ and after fitting a Random Forests with
 1000 trees we see about 290 non-terminal splits per tree. We observe 291142 splits with a distribution of frequencies
 given in the ``Observed'' column of Table \ref{tab:expected_vs_observed}.
-
 
 
 Fitting the ZIGP null model to the Rheumatoid data yields the following parameters:
@@ -328,28 +327,29 @@ See Table \ref{tab:expected_vs_observed} for the expected values for the counts 
 \ref{figure:plot_zigp_comparison_fixed.png} for a plot of the observed and expected values.
 
 There are several options described in  \cite{Gauran.et.al.2018}.
-Using the ``one stage procedure'' and $C_1$ constant (see supplementary information)
+Using the ``one stage procedure'' and $C_1$ constant (see supplementary file Supplementary_File_Rheumatoid_Data.Rmd)
 we get a $C$ value (equation \ref{eqn:C}) of 6 and and a $D_n$ value of 7 which gives us 57 significant interaction.
 
 We note an important caveat here.  \cite{Gauran.et.al.2018} show that the significance level can be
 determined and the FDR controlled in a series of simulation examples. For example  Figure 1 \cite[]{Gauran.et.al.2018}
 shows an example where $\lambda =20$ for the null distribution and the contaminating distribution is a Binomial with
 $\mu=50.$ It would appear that these examples all have $\lambda$ and $\mu$ (the mean of the contaminating distribution) with a
-greater separation than we have in the Rheumatoid data. So we may have a more inteactable problem here.
+greater separation than we have in the Rheumatoid data. We may have a more intractable problem here.
 
-Now, somewhat uniquely, we can move the contaminating distribution. All we need to do is fit a Random Forests with more
-trees and we will observe more counts.  There is a trade-off here and as we are sampling a space with typically more
-than $10^{9}$ possible interactions, we have to increase the number of trees a lot to get a meaningful difference in the
-mean of the contaminating distribution. We have found the thresholding to give a larger set of significant variables
-than the empirical Bayes method. However it controls the FDR rate by testing each variable and computationally easier.
+Uniquely amongst estimation problems, we can move the distribution of our data. If we fit a Random Forests with more
+trees we will get a better estimate of the null distribution and also shift the comtaminating distribution to the
+right. However, as we are sampling a space with possibly more than $10^{10}$ possible interactions, we may have to increase the
+number of trees a lot to get a meaningful difference in the mean of the contaminating distribution.
+So while the Empirical Bayes method presented here can estimate the significane level, we have found that
+thresholding the counts can be computationally easier. 
 
 \subsection{threshholding the data}
 In this case we have followed a simple strategy:
 \begin{itemize}
-\item threshold the observed count data. We do this a number of ways to do this (breakpoints in the distribution,
-  entropy tests and otehrs. See the supplementary informaton) and then take the median. In
-  the case of the Rheumatoid data, this was 2 which gave us 222 interactions;
-\item test each interaction with a linear model (see below).
+\item threshold the observed count data. We do this in number of ways  (breakpoints in the distribution,
+  entropy tests and others. See the supplementary information file Supplementary_File_Rheumatoid_Data.Rmd) and then take the median. In
+  the case of the Rheumatoid data, the selected breakpoint was 2 which gave us 222 interactions;
+\item test each interaction with a linear model as described below.
 \end{itemize}
 
 This, despite some processing of the linear models, is less time consuming than training a much larger Random Forests.
@@ -502,8 +502,8 @@ expected as in the ``No Interaction model'' all the individual SNP have their ow
 interacting. Hence, they were correctly selected at different nodes of the decision trees.  For the ``Interaction model'',
 rankings of the three interacting SNP pairs are relatively higher than the other two models. The rankings observed
 demonstrated that if the SNP pairs are ranked based on the count of their appearance as parent-child nodes, it should be
-possible to only test pairwise interaction for a subset of marker pairs from the vast number of total possible combina-
-tions of markers.  To quantify the efficiency of the method in reducing the search space, the number of tests performed
+possible to only test pairwise interaction for a subset of marker pairs from the vast number of total possible combinations-
+ of markers.  To quantify the efficiency of the method in reducing the search space, the number of tests performed
 was compared to the number of markers and potential pairwise combinations. For this test, a threshold of $t = 2$ was
 used, meaning that if any of the marker pairs appeared as parent-child nodes in the decision trees of the Random Forests
 for at least twice, they were then tested for interaction significance using Equation \ref{eqn:linearmmodel}. Table  \ref{table:Number.of.tests.performed.to.detect.interactions} shows the number of
@@ -614,7 +614,7 @@ To test repeatability of the proposed method, the ``Interaction model'' was gene
 interacting SNPs. In most of the scenarios tested, the method was able to successfully identify the interacting pairs
 except for pair P1 at lower heritabilities. This result appears to be because pair P1 has a lower interaction effect
 when compared to pairs P2 and P3. Pair P1 appeared on the candidate lists in all instances but did not pass multiple
-test corrections several times when the heritabilities were low (ie 0.25, 0.33).  To assess the false discovery rate of
+test corrections several times when the heritabilities were low (i.e. 0.25, 0.33).  To assess the false discovery rate of
 the method, the number of false positive interactions were counted across the 10 replicates at the different
 heritability levels. A false positive was declared when a pair of SNP were not in the original data and when these SNP
 were not correlated or in high LD with one of the three simulated pairs. This is because there were multiple
