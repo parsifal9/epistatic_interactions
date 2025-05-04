@@ -1,0 +1,96 @@
+
+
+\documentclass{article}
+
+\usepackage{charter} % Use the Charter font for the document text
+
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr,graphicx}
+
+\fancypagestyle{firstpage}{%
+  \fancyhf{}% Clear header/footer
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{1pt}%
+  % Add more detail here if needed
+}
+\fancypagestyle{otherpages}{%
+  \fancyhf{}% Clear header/footer
+  \renewcommand{\headrulewidth}{1pt}%
+  \renewcommand{\footrulewidth}{1pt}%
+  % Add more detail here if needed
+}
+
+\AtBeginDocument{\thispagestyle{firstpage}}
+\pagestyle{otherpages}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+
+\begin{document}
+
+\vspace*{\dimexpr-\headsep-\headheight-1pt}
+
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+  \includegraphics[width=4cm]{CSIRO_logo.png}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+  \raggedleft
+  \raisebox{1cm}{\begin{tabular}{ l @{} }
+  \today \\[12pt] % Date
+   Robert Dunne \\
+   13 Garden Street\\
+    Eveleigh NSW \\
+    Phone: (+61) 439 905  075 \\
+    Email: rob.dunne@csiro.au
+  \end{tabular}}
+\end{minipage}
+
+\rule{\linewidth}{1pt}
+
+\bigskip\bigskip
+
+Dr. Christiana Gousiadi
+
+Research Networks AS, Oslo, Norway
+
+\noindent
+\begin{minipage}[t]{\textwidth}
+  Dr. Christiana Gousiadi \\ 
+  Research Networks AS, Oslo, Norway \\
+  Editor-in-Chief,  Computational and Structural Biotechnology Reports \\ 
+\end{minipage}
+
+\bigskip\bigskip
+
+% Start of the letter content
+\noindent
+Dear Dr. Christiana Gousiadi,
+
+\bigskip
+
+
+I am sending you the manuscript of our research paper entitled ``Detection of Ecstatic Interactions in High-Dimensional
+Genomic Data Using Random Forests''. We would like to have the manuscript considered for publication in  Computational and Structural Biotechnology Reports.
+
+Epistatic interactions can play an important role in the genetic mechanisms that control phenotypic variation. However,
+identifying these interactions in high dimensional genomic data can be very challenging due to the large computational
+burden.
+
+Random Forests Decision Trees are widely used in a variety of disciplines and handle interactions well.
+In fact, in a Random Forest model there are no ``main effects'', they are all interactions. 
+
+However, Random Forests models do not explicitly detect variable interactions. We have addressed this problem with a
+computationally feasible approach.
+
+We confirm that this manuscript has not been published elsewhere and is not under consideration by another journal.
+All authors have approved the manuscript and agree with its submission to [insert the name of the target journal].
+
+We believe that this paper is well aligned with the aims and scope of the journal Computational and Structural
+Biotechnology Reports.
+
+
+Robert Dunne
+
+\end{document}
+
