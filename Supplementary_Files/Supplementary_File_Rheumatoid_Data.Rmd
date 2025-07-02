@@ -9,6 +9,7 @@ output:
      fig_caption: yes
      citation_package: biblatex
 bibliography: 
+    ../epistaticInteractions.bib 
 header-includes:
   \usepackage{dcolumn}
   \usepackage{placeins}
@@ -97,7 +98,7 @@ are the 74 SNPs with maximum variable importance from the random forest fit.
 
 
 ```{r RFlocalfdr, eval=TRUE, echo=FALSE, fig.cap='RFlocalfdr analysis',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./supp_figs/RFlocalfdr.png")
+knitr::include_graphics("RFlocalfdr.png")
 
 ```
 
@@ -146,7 +147,7 @@ cbind(aa$probabilities,var_importance)
 - There is a hotspot in chromosome 6. See figure \@ref(fig:hotspot)
 
 ```{r hotspot, eval=TRUE, echo=FALSE, fig.cap='There is a hotspot in chromosome 6',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./supp_figs/hotspot.png")
+knitr::include_graphics("hotspot.png")
 
 ```
 
@@ -545,7 +546,7 @@ print(paste("Count with maximum positive deviation:",
 ```
 
 ```{r zigplogscaleextended, eval=TRUE, echo=FALSE, fig.cap='empiricalzip fitted ZIPG',  fig.align = 'center', out.width = '50%'}
-knitr::include_graphics("./supp_figs/zigp_log_scale_extended.png")
+knitr::include_graphics("zigp_log_scale_extended.png")
 
 ```
 
@@ -901,15 +902,15 @@ results$parameters
 ```
 
 ```{R, zipfplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Power Law (Zipf) Distribution", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./supp_figs/ZI_Zipf_plot.png")
+knitr::include_graphics("ZI_Zipf_plot.png")
 ```
 
 ```{R, zigpplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Generalized Poisson", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./supp_figs/ZIGP_plot.png")
+knitr::include_graphics("ZIGP_plot.png")
 ```
 
 ```{R, zinbplot, echo=FALSE, eval=TRUE, fig.cap="Zero Inflated Negative Binomial", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./supp_figs/ZINB_plot.png")
+knitr::include_graphics("ZINB_plot.png")
 ```
 
 ```{R, echo=FALSE, eval=FALSE}
@@ -1420,7 +1421,7 @@ dev.off()
 ```
 
 ```{R, powerlaw, echo=FALSE, eval=TRUE, fig.cap="Plot of log(frequency) vs log(count). A power law would show a straight line", out.width = '50%',fig.align = 'center'}
-knitr::include_graphics("./supp_figs/power_law.png")
+knitr::include_graphics("power_law.png")
 ```
 
 
