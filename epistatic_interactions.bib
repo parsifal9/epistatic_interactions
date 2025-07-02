@@ -1614,7 +1614,88 @@
 
 
 
+@article{probstHyperparametersTuningStrategies2019,
+  title = {Hyperparameters and Tuning Strategies for Random Forest},
+  author = {Probst, Philipp and Wright, Marvin N. and Boulesteix, Anne-Laure},
+  year = {2019},
+  journal = {WIREs Data Mining and Knowledge Discovery},
+  volume = {9},
+  number = {3},
+  pages = {e1301},
+  issn = {1942-4795},
+  doi = {10.1002/widm.1301},
+  urldate = {2021-06-17},
+  abstract = {The random forest (RF) algorithm has several hyperparameters that have to be set by the user, for example, the number of observations drawn randomly for each tree and whether they are drawn with or without replacement, the number of variables drawn randomly for each split, the splitting rule, the minimum number of samples that a node must contain, and the number of trees. In this paper, we first provide a literature review on the parameters' influence on the prediction performance and on variable importance measures. It is well known that in most cases RF works reasonably well with the default values of the hyperparameters specified in software packages. Nevertheless, tuning the hyperparameters can improve the performance of RF. In the second part of this paper, after a presenting brief overview of tuning strategies, we demonstrate the application of one of the most established tuning strategies, model-based optimization (MBO). To make it easier to use, we provide the tuneRanger R package that tunes RF with MBO automatically. In a benchmark study on several datasets, we compare the prediction performance and runtime of tuneRanger with other tuning implementations in R and RF with default hyperparameters. This article is categorized under: Algorithmic Development {$>$} Biological Data Mining Algorithmic Development {$>$} Statistics Algorithmic Development {$>$} Hierarchies and Trees Technologies {$>$} Machine Learning},
+  copyright = {{\copyright} 2019 Wiley Periodicals, Inc.},
+  langid = {english},
+  keywords = {ensemble,literature review,out-of-bag,performance evaluation,ranger,sequential model-based optimization,tuning parameter},
+  file = {/home/dun280/Dropbox/zotero/Probst et al/Probst et al_2019_Hyperparameters and tuning strategies for random forest.pdf}
+}
+
+@article{probstTuneNotTune2017,
+  title = {To Tune or Not to Tune the Number of Trees in Random Forest?},
+  author = {Probst, Philipp and Boulesteix, Anne-Laure},
+  year = {2017},
+  month = may,
+  urldate = {2021-08-25},
+  abstract = {The number of trees T in the random forest (RF) algorithm for supervised learning has to be set by the user. It is controversial whether T should simply be set to the largest computationally manageable value or whether a smaller T may in some cases be better. While the principle underlying bagging is that "more trees are better", in practice the classification error rate sometimes reaches a minimum before increasing again for increasing number of trees. The goal of this paper is four-fold: (i) providing theoretical results showing that the expected error rate may be a non-monotonous function of the number of trees and explaining under which circumstances this happens; (ii) providing theoretical results showing that such non-monotonous patterns cannot be observed for other performance measures such as the Brier score and the logarithmic loss (for classification) and the mean squared error (for regression); (iii) illustrating the extent of the problem through an application to a large number (n = 306) of datasets from the public database OpenML; (iv) finally arguing in favor of setting it to a computationally feasible large number, depending on convergence properties of the desired performance measure.},
+  langid = {english},
+  file = {/home/dun280/Dropbox/zotero/Probst_Boulesteix/Probst_Boulesteix_2017_To tune or not to tune the number of trees in random forest.pdf}
+}
 
 
 
+@inproceedings{oshiroHowManyTrees2012,
+  title = {How {{Many Trees}} in a {{Random Forest}}?},
+  booktitle = {Machine {{Learning}} and {{Data Mining}} in {{Pattern Recognition}}},
+  author = {Oshiro, Thais Mayumi and Perez, Pedro Santoro and Baranauskas, Jos{\'e} Augusto},
+  editor = {Perner, Petra},
+  year = {2012},
+  series = {Lecture {{Notes}} in {{Computer Science}}},
+  pages = {154--168},
+  publisher = {Springer Berlin Heidelberg},
+  abstract = {Random Forest is a computationally efficient technique that can operate quickly over large datasets. It has been used in many recent research projects and real-world applications in diverse domains. However, the associated literature provides almost no directions about how many trees should be used to compose a Random Forest. The research reported here analyzes whether there is an optimal number of trees within a Random Forest, i.e., a threshold from which increasing the number of trees would bring no significant performance gain, and would only increase the computational cost. Our main conclusions are: as the number of trees grows, it does not always mean the performance of the forest is significantly better than previous forests (fewer trees), and doubling the number of trees is worthless. It is also possible to state there is a threshold beyond which there is no significant gain, unless a huge computational environment is available. In addition, it was found an experimental relationship for the AUC gain when doubling the number of trees in any forest. Furthermore, as the number of trees grows, the full set of attributes tend to be used within a Random Forest, which may not be interesting in the biomedical domain. Additionally, datasets' density-based metrics proposed here probably capture some aspects of the VC dimension on decision trees and low-density datasets may require large capacity machines whilst the opposite also seems to be true.},
+  isbn = {978-3-642-31537-4},
+  langid = {english},
+  keywords = {Number of Trees,Random Forest,VC Dimension},
+  file = {/home/dun280/Dropbox/zotero/Springer Berlin Heidelberg/2012/Oshiro et al. - 2012 - How Many Trees in a Random Forest.pdf}
+}
 
+
+@misc{probstTunabilityImportanceHyperparameters2018,
+  title = {Tunability: {{Importance}} of {{Hyperparameters}} of {{Machine Learning Algorithms}}},
+  shorttitle = {Tunability},
+  author = {Probst, Philipp and Bischl, Bernd and Boulesteix, Anne-Laure},
+  year = {2018},
+  month = oct,
+  number = {arXiv:1802.09596},
+  eprint = {1802.09596},
+  primaryclass = {stat},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.1802.09596},
+  urldate = {2025-07-01},
+  abstract = {Modern supervised machine learning algorithms involve hyperparameters that have to be set before running them. Options for setting hyperparameters are default values from the software package, manual configuration by the user or configuring them for optimal predictive performance by a tuning procedure. The goal of this paper is two-fold. Firstly, we formalize the problem of tuning from a statistical point of view, define data-based defaults and suggest general measures quantifying the tunability of hyperparameters of algorithms. Secondly, we conduct a large-scale benchmarking study based on 38 datasets from the OpenML platform and six common machine learning algorithms. We apply our measures to assess the tunability of their parameters. Our results yield default values for hyperparameters and enable users to decide whether it is worth conducting a possibly time consuming tuning strategy, to focus on the most important hyperparameters and to chose adequate hyperparameter spaces for tuning.},
+  archiveprefix = {arXiv},
+  keywords = {Statistics - Machine Learning},
+  file = {/home/dun280/Dropbox/zotero/arXiv/2018/Probst et al_2018_Tunability.pdf}
+}
+
+
+@article{lunettaScreeningLargescaleAssociation2004,
+  title = {Screening Large-Scale Association Study Data: Exploiting Interactions Using Random Forests},
+  shorttitle = {Screening Large-Scale Association Study Data},
+  author = {Lunetta, Kathryn L. and Hayward, L. Brooke and Segal, Jonathan and Van Eerdewegh, Paul},
+  year = {2004},
+  month = dec,
+  journal = {BMC genetics},
+  volume = {5},
+  pages = {32},
+  issn = {1471-2156},
+  doi = {10.1186/1471-2156-5-32},
+  abstract = {BACKGROUND: Genome-wide association studies for complex diseases will produce genotypes on hundreds of thousands of single nucleotide polymorphisms (SNPs). A logical first approach to dealing with massive numbers of SNPs is to use some test to screen the SNPs, retaining only those that meet some criterion for further study. For example, SNPs can be ranked by p-value, and those with the lowest p-values retained. When SNPs have large interaction effects but small marginal effects in a population, they are unlikely to be retained when univariate tests are used for screening. However, model-based screens that pre-specify interactions are impractical for data sets with thousands of SNPs. Random forest analysis is an alternative method that produces a single measure of importance for each predictor variable that takes into account interactions among variables without requiring model specification. Interactions increase the importance for the individual interacting variables, making them more likely to be given high importance relative to other variables. We test the performance of random forests as a screening procedure to identify small numbers of risk-associated SNPs from among large numbers of unassociated SNPs using complex disease models with up to 32 loci, incorporating both genetic heterogeneity and multi-locus interaction. RESULTS: Keeping other factors constant, if risk SNPs interact, the random forest importance measure significantly outperforms the Fisher Exact test as a screening tool. As the number of interacting SNPs increases, the improvement in performance of random forest analysis relative to Fisher Exact test for screening also increases. Random forests perform similarly to the univariate Fisher Exact test as a screening tool when SNPs in the analysis do not interact. CONCLUSIONS: In the context of large-scale genetic association studies where unknown interactions exist among true risk-associated SNPs or SNPs and environmental covariates, screening SNPs using random forest analyses can significantly reduce the number of SNPs that need to be retained for further study compared to standard univariate screening methods.},
+  langid = {english},
+  pmcid = {PMC545646},
+  pmid = {15588316},
+  keywords = {Case-Control Studies,Classification,Family Health,Genetic Diseases Inborn,Genomics,Humans,Linkage Disequilibrium,Models Genetic,Odds Ratio,Polymorphism Single Nucleotide,Siblings},
+  file = {/home/dun280/Dropbox/zotero/BMC genetics/2004/Lunetta et al_2004_Screening large-scale association study data.pdf}
+}
